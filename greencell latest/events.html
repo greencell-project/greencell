@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Events & Challenges - GreenCell</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --primary-green:#2D5A27;
+      --secondary-green:#4A7C59;
+      --accent-earth:#8B4513;
+      --clean-blue:#4A90A4;
+      --neutral-gray:#6B7280;
+      --success-green:#10B981;
+      --warning-orange:#F59E0B;
+    }
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#f0f9f0 0%,#ffffff 100%);background-attachment:fixed;}
+    .display-font{font-family:'Playfair Display',serif;}
+    .accent-font{font-family:'Space Grotesk',sans-serif;}
+
+    .event-card{transition:all .3s ease;backdrop-filter:blur(10px);}
+    .event-card:hover{transform:translateY(-4px);box-shadow:0 15px 30px rgba(0,0,0,.1);}
+
+    .calendar-day{transition:all .3s ease;cursor:pointer;}
+    .calendar-day:hover{background:rgba(45,90,39,.1);}
+    .calendar-day.has-event{background:rgba(45,90,39,.2);position:relative;}
+    .calendar-day.has-event::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:6px;height:6px;background:var(--primary-green);border-radius:50%;}
+    .calendar-day.selected{background:var(--primary-green);color:#fff;}
+
+    .challenge-card{transition:all .3s ease;}
+    .challenge-card:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,.1);}
+
+    .nav-link{position:relative;transition:all .3s ease;}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--success-green);transition:width .3s ease;}
+    .nav-link:hover::after{width:100%;}
+
+    .filter-tab{transition:all .3s ease;}
+    .filter-tab.active{background:var(--primary-green);color:#fff;}
+    .filter-tab:not(.active):hover{background:rgba(45,90,39,.1);}
+
+    .leaderboard-item{transition:all .3s ease;}
+    .leaderboard-item:hover{background:rgba(45,90,39,.05);}
+
+    .registration-modal{display:none;}
+    .registration-modal.active{display:flex;animation:fadeIn .3s ease;}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    .countdown-timer{font-variant-numeric:tabular-nums;}
+  </style>
+</head>
+<body>
+  <!-- NAV: EVENTS (updated) -->
+  <nav id="gc-nav" class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <!-- brand -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center text-white">🌱</div>
+          <span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+        </div>
+        <!-- links -->
+        <div class="hidden md:flex items-center gap-8">
+          <a data-link="home" href="index.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Home</a>
+          <a data-link="dashboard" href="dashboard.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Dashboard</a>
+          <a data-link="innovation" href="innovation-lab.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Innovation Lab</a>
+          <a data-link="hub" href="learning-hub.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Learning Hub</a>
+          <a data-link="events" href="events.html" class="gc-link font-medium text-green-600">Events</a>
+          <a data-link="contact" href="contact.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Contact</a>
+        </div>
+        <!-- user capsule -->
+        <div class="flex items-center gap-3">
+          <img id="gc-avatar" alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 object-cover" />
+          <div class="leading-tight">
+            <div id="gc-name" class="text-sm font-medium text-gray-800">—</div>
+            <div id="gc-role" class="text-[11px] text-gray-500">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- spacer -->
+  <div style="height:64px"></div>
+
+  <!-- Navbar init: single source of truth; no “Guest” flicker -->
+  <script type="module">
+    const SUPABASE_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+
+    // Load module build; fall back to UMD if needed (prevents import errors)
+    let createClient;
+    try {
+      ({ createClient } = await import("https://esm.sh/@supabase/supabase-js@2"));
+    } catch {
+      createClient = window.supabase?.createClient;
+    }
+    const sb = createClient?.(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Highlight active link
+    const mark = (name) => {
+      document.querySelectorAll(".gc-link").forEach(a => a.classList.remove("text-green-600"));
+      document.querySelector(`.gc-link[data-link="${name}"]`)?.classList.add("text-green-600");
+    };
+    mark("events");
+
+    // Letter avatar (from FULL NAME)
+    function letterAvatar(name, size = 64){
+      const t = (name || "U");
+      const c = document.createElement("canvas"); c.width = c.height = size;
+      const ctx = c.getContext("2d");
+      let h=0; for(let i=0;i<t.length;i++) h=(h*31+t.charCodeAt(i))>>>0;
+      ctx.fillStyle = `hsl(${h%360} 70% 55%)`; ctx.fillRect(0,0,size,size);
+      ctx.fillStyle = "#fff"; ctx.font = `${Math.floor(size*0.55)}px Inter, Arial`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText((t[0]||"U").toUpperCase(), size/2, size/2);
+      return c.toDataURL("image/png");
+    }
+
+    async function resolveAvatarUrl(profile, user, displayName){
+      const raw = (profile?.avatar_url ?? "").trim();
+
+      // If already an http(s) URL
+      if (raw && /^https?:\/\//i.test(raw)) return raw;
+
+      // If it's a storage path, try public then signed URL
+      if (raw && sb){
+        const pub = sb.storage.from("avatars").getPublicUrl(raw)?.data?.publicUrl;
+        if (pub) return pub;
+        const signed = (await sb.storage.from("avatars").createSignedUrl(raw, 60*60*24*365))?.data?.signedUrl;
+        if (signed) return signed;
+      }
+
+      // Fallback to letter avatar based on FULL NAME
+      return letterAvatar(displayName, 64);
+    }
+
+    async function initNav(){
+      const imgEl  = document.getElementById("gc-avatar");
+      const nameEl = document.getElementById("gc-name");
+      const roleEl = document.getElementById("gc-role");
+
+      if (!sb) {
+        // No client? show generic
+        imgEl.src = letterAvatar("Guest");
+        nameEl.textContent = "Guest";
+        roleEl.textContent = "visitor";
+        return;
+      }
+
+      // getSession prevents “Guest flash” better than getUser
+      const { data:{ session } } = await sb.auth.getSession();
+      if (!session){
+        imgEl.src = letterAvatar("Guest");
+        nameEl.textContent = "Guest";
+        roleEl.textContent = "visitor";
+        return;
+      }
+
+      const user = session.user;
+      const { data: prof } = await sb.from("profiles")
+        .select("full_name, username, role, avatar_url")
+        .eq("id", user.id).maybeSingle();
+
+      const fullName = (prof?.full_name ?? "").trim();
+      const handle   = user.email?.split("@")[0] ?? "User";
+      const display  = fullName || (prof?.username ?? "").trim() || handle;
+
+      nameEl.textContent = display;
+      roleEl.textContent = prof?.role ?? "user";
+      imgEl.decoding = "async";
+      imgEl.src = await resolveAvatarUrl(prof, user, fullName || display);
+      imgEl.onerror = () => { imgEl.src = letterAvatar(fullName || display, 64); };
+    }
+
+    initNav();
+
+    // If Settings page updates avatar, allow cross-tab refresh
+    window.addEventListener("storage", (e) => {
+      if (e.key === "gc_avatar_refresh" && e.newValue === "1"){
+        initNav().finally(() => localStorage.removeItem("gc_avatar_refresh"));
+      }
+    });
+  </script>
+
+  <!-- MAIN (everything below stays exactly as your page has it) -->
+  <div class="pt-6 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="display-font text-4xl font-bold text-gray-900 mb-2">Events & Challenges 🗓️</h1>
+        <p class="text-xl text-gray-600">Join sustainability events and compete in global challenges</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="mb-8">
+        <div class="flex flex-wrap gap-3">
+          <button class="filter-tab active px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="all">All Events</button>
+          <button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="upcoming">Upcoming</button>
+          <button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="registered">Registered</button>
+          <button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="challenges">Challenges</button>
+          <button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="past">Past Events</button>
+        </div>
+      </div>
+
+      <!-- GRID -->
+      <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Left: Events -->
+        <div class="lg:col-span-2">
+          <!-- Upcoming -->
+          <div class="mb-8">
+            <h2 class="display-font text-2xl font-bold text-gray-900 mb-6">Upcoming Events</h2>
+
+            <!-- Live events injected here -->
+            <div id="eventsList" class="space-y-6"></div>
+
+            <!-- Static examples -->
+            <div class="space-y-6">
+              <!-- Event 1 -->
+              <div class="event-card bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100" data-status="upcoming">
+                <div class="flex items-start space-x-4">
+                  <div class="w-16 h-16 bg-green-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                    <span class="text-green-600 font-bold text-lg">15</span>
+                    <span class="text-green-600 text-xs">DEC</span>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <h3 class="display-font text-xl font-bold text-gray-900">Climate Action Workshop</h3>
+                      <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Online</span>
+                    </div>
+                    <p class="text-gray-600 mb-3">Interactive workshop covering practical climate solutions, renewable energy basics, and community action planning. Perfect for students starting their sustainability journey.</p>
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>🕐 2:00 PM - 4:00 PM EST</span>
+                        <span>👥 24 registered</span>
+                        <span>🎯 Beginner Friendly</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <span class="w-6 h-6 bg-gray-200 rounded-full grid place-content-center">🎓</span>
+                        <span class="text-sm text-gray-600">Dr. Sarah Kim</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <span>🏆 50 points</span>
+                        <span>📜 Certificate</span>
+                      </div>
+                      <button class="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors" onclick="registerForEvent('climate-workshop')">Register Now</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Event 2 -->
+              <div class="event-card bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100" data-status="upcoming">
+                <div class="flex items-start space-x-4">
+                  <div class="w-16 h-16 bg-blue-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                    <span class="text-blue-600 font-bold text-lg">18</span>
+                    <span class="text-blue-600 text-xs">DEC</span>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <h3 class="display-font text-xl font-bold text-gray-900">SDG Innovation Challenge</h3>
+                      <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">Competition</span>
+                    </div>
+                    <p class="text-gray-600 mb-3">24-hour sustainability hackathon where teams create innovative solutions for real-world environmental challenges. Win prizes and mentorship opportunities.</p>
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>🕐 9:00 AM - 9:00 AM EST</span>
+                        <span>👥 12 teams registered</span>
+                        <span>🎯 Advanced</span>
+                      </div>
+                      <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <span class="w-6 h-6 bg-gray-200 rounded-full grid place-content-center">🏢</span>
+                        <span>GreenCell Org</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <span>🏆 $500 prize</span>
+                        <span>🎓 Mentorship</span>
+                      </div>
+                      <button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors" onclick="registerForEvent('innovation-challenge')">Join Challenge</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Event 3 -->
+              <div class="event-card bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100" data-status="registered">
+                <div class="flex items-start space-x-4">
+                  <div class="w-16 h-16 bg-purple-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                    <span class="text-purple-600 font-bold text-lg">22</span>
+                    <span class="text-purple-600 text-xs">DEC</span>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <h3 class="display-font text-xl font-bold text-gray-900">Mentor Connect Session</h3>
+                      <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">Networking</span>
+                    </div>
+                    <p class="text-gray-600 mb-3">Connect with sustainability experts and industry professionals. Get career advice, project guidance, and networking opportunities.</p>
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>🕐 4:00 PM - 6:00 PM EST</span>
+                        <span>👥 8 registered</span>
+                        <span>🎯 All Levels</span>
+                      </div>
+                      <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <span class="w-6 h-6 bg-gray-200 rounded-full grid place-content-center">👥</span>
+                        <span>Expert Panel</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <span>🏆 30 points</span>
+                        <span>🤝 Networking</span>
+                      </div>
+                      <button class="bg-gray-600 text-white px-6 py-2 rounded-lg font-medium" disabled>Registered ✓</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- /static -->
+          </div>
+        </div>
+
+        <!-- Right: Calendar -->
+        <div class="space-y-8">
+          <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100">
+            <h3 class="display-font text-xl font-bold text-gray-900 mb-4">December 2024</h3>
+            <div class="grid grid-cols-7 gap-1 mb-2">
+              <div class="text-center text-sm font-medium text-gray-500 py-2">Sun</div>
+              <div class="text-center text-sm font-medium text-gray-500 py-2">Mon</div>
+              <div class="text-center text-sm font-medium text-gray-500 py-2">Tue</div>
+              <div class="text-center text-sm font-medium text-gray-500 py-2">Wed</div>
+              <div class="text-center text-sm font-medium text-gray-500 py-2">Thu</div>
+              <div class="text-center text-sm font-medium text-gray-500 py-2">Fri</div>
+              <div class="text-center text-sm font-medium text-gray-500 py-2">Sat</div>
+            </div>
+            <div class="grid grid-cols-7 gap-1">
+              <div class="calendar-day text-center py-2 rounded-lg text-gray-400">1</div>
+              <div class="calendar-day text-center py-2 rounded-lg text-gray-400">2</div>
+              <div class="calendar-day text-center py-2 rounded-lg text-gray-400">3</div>
+              <div class="calendar-day text-center py-2 rounded-lg text-gray-400">4</div>
+              <div class="calendar-day text-center py-2 rounded-lg text-gray-400">5</div>
+              <div class="calendar-day text-center py-2 rounded-lg text-gray-400">6</div>
+              <div class="calendar-day text-center py-2 rounded-lg text-gray-400">7</div>
+              <div class="calendar-day text-center py-2 rounded-lg">8</div>
+              <div class="calendar-day text-center py-2 rounded-lg">9</div>
+              <div class="calendar-day text-center py-2 rounded-lg">10</div>
+              <div class="calendar-day text-center py-2 rounded-lg">11</div>
+              <div class="calendar-day text-center py-2 rounded-lg">12</div>
+              <div class="calendar-day text-center py-2 rounded-lg">13</div>
+              <div class="calendar-day text-center py-2 rounded-lg">14</div>
+              <div class="calendar-day has-event text-center py-2 rounded-lg font-medium" onclick="showEventDetails('climate-workshop')">15</div>
+              <div class="calendar-day text-center py-2 rounded-lg">16</div>
+              <div class="calendar-day text-center py-2 rounded-lg">17</div>
+              <div class="calendar-day has-event text-center py-2 rounded-lg font-medium" onclick="showEventDetails('innovation-challenge')">18</div>
+              <div class="calendar-day text-center py-2 rounded-lg">19</div>
+              <div class="calendar-day text-center py-2 rounded-lg">20</div>
+              <div class="calendar-day text-center py-2 rounded-lg">21</div>
+              <div class="calendar-day has-event text-center py-2 rounded-lg font-medium" onclick="showEventDetails('mentor-connect')">22</div>
+              <div class="calendar-day text-center py-2 rounded-lg">23</div>
+              <div class="calendar-day text-center py-2 rounded-lg">24</div>
+              <div class="calendar-day text-center py-2 rounded-lg">25</div>
+              <div class="calendar-day text-center py-2 rounded-lg">26</div>
+              <div class="calendar-day text-center py-2 rounded-lg">27</div>
+              <div class="calendar-day text-center py-2 rounded-lg">28</div>
+              <div class="calendar-day text-center py-2 rounded-lg">29</div>
+              <div class="calendar-day text-center py-2 rounded-lg">30</div>
+              <div class="calendar-day text-center py-2 rounded-lg">31</div>
+            </div>
+          </div>
+
+          <!-- Leaderboard -->
+          <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100">
+            <h3 class="display-font text-xl font-bold text-gray-900 mb-4">Challenge Leaderboard</h3>
+            <p class="text-sm text-gray-600 mb-4">This month's top performers</p>
+
+            <div class="space-y-3">
+              <div class="leaderboard-item flex items-center space-x-3 p-2 rounded-lg">
+                <div class="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center"><span class="text-white text-sm font-bold">1</span></div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full grid place-content-center">👤</div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900">Marcus Johnson</p>
+                  <p class="text-xs text-gray-500">847 points</p>
+                </div>
+              </div>
+
+              <div class="leaderboard-item flex items-center space-x-3 p-2 rounded-lg">
+                <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center"><span class="text-white text-sm font-bold">2</span></div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full grid place-content-center border-2 border-green-500">🙂</div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900">You</p>
+                  <p class="text-xs text-gray-500">723 points</p>
+                </div>
+              </div>
+
+              <div class="leaderboard-item flex items-center space-x-3 p-2 rounded-lg">
+                <div class="w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center"><span class="text-white text-sm font-bold">3</span></div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full grid place-content-center">👩</div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900">Sarah Kim</p>
+                  <p class="text-xs text-gray-500">689 points</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+              <p class="text-sm text-green-800 font-medium">🎉 You're doing great!</p>
+              <p class="text-xs text-green-700 mt-1">Only 124 points to reach #1 position</p>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100">
+            <h3 class="display-font text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
+            <div class="space-y-3">
+              <button class="w-full bg-green-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-800 transition-colors text-left">📅 Browse All Events</button>
+              <button class="w-full bg-emerald-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-800 transition-colors text-left">🏆 View My Registrations</button>
+              <button class="w-full bg-teal-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-teal-800 transition-colors text-left">📊 Check Challenge Progress</button>
+              <button class="w-full bg-lime-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-lime-800 transition-colors text-left">🔔 Set Event Reminders</button>
+            </div>
+          </div>
+        </div>
+      </div> <!-- /grid -->
+    </div>
+  </div>
+
+  <!-- Registration Modal -->
+  <div id="registration-modal" class="registration-modal fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-8">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-green-600 text-2xl">🎉</span>
+        </div>
+        <h3 class="display-font text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h3>
+        <p class="text-gray-600">You're all set for the Climate Action Workshop</p>
+      </div>
+
+      <div class="bg-gray-50 rounded-xl p-4 mb-6">
+        <h4 class="font-semibold text-gray-900 mb-2">Event Details</h4>
+        <div class="space-y-1 text-sm text-gray-600">
+          <p>📅 December 15, 2024</p>
+          <p>🕐 2:00 PM - 4:00 PM EST</p>
+          <p>📍 Online (Zoom link will be sent)</p>
+          <p>🏆 50 points + Certificate</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <button class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors" onclick="closeRegistrationModal()">Got it!</button>
+        <button class="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors">Add to Calendar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page JS (unchanged) -->
+  <script>
+    document.addEventListener('DOMContentLoaded',() => {
+      initializeFilters();
+      animateEventCards();
+      initializeCalendar();
+    });
+
+    function initializeFilters(){
+      const filterTabs=document.querySelectorAll('.filter-tab');
+      const eventCards=()=>document.querySelectorAll('.event-card');
+      filterTabs.forEach(tab=>{
+        tab.addEventListener('click',function(){
+          filterTabs.forEach(t=>t.classList.remove('active'));
+          this.classList.add('active');
+          const filter=this.dataset.filter;
+          eventCards().forEach(card=>{
+            const status=card.getAttribute('data-status');
+            let show=false;
+            if(filter==='all') show=true;
+            else if(filter==='challenges') show=false; // challenges block handled separately
+            else show=status===filter;
+            if(show){
+              card.style.display='block';
+              anime({targets:card,opacity:[0,1],translateY:[20,0],duration:300,easing:'easeOutQuad'});
+            }else{
+              anime({targets:card,opacity:0,translateY:-20,duration:200,easing:'easeInQuad',complete:()=>card.style.display='none'});
+            }
+          });
+        });
+      });
+    }
+
+    function animateEventCards(){
+      const cards=document.querySelectorAll('.event-card, .challenge-card');
+      cards.forEach((card,i)=>{
+        anime({targets:card,translateY:[30,0],opacity:[0,1],duration:600,delay:i*100,easing:'easeOutQuad'});
+      });
+    }
+
+    function initializeCalendar(){
+      const days=document.querySelectorAll('.calendar-day');
+      days.forEach(d=>d.addEventListener('click',function(){
+        if(!this.classList.contains('has-event')) return;
+        days.forEach(x=>x.classList.remove('selected'));
+        this.classList.add('selected');
+      }));
+    }
+
+    function registerForEvent(){ // mock
+      document.getElementById('registration-modal').classList.add('active');
+      anime({targets:'#registration-modal .bg-white',scale:[.9,1],opacity:[0,1],duration:300,easing:'easeOutQuad'});
+    }
+    function closeRegistrationModal(){
+      anime({targets:'#registration-modal .bg-white',scale:.9,opacity:0,duration:200,easing:'easeInQuad',complete:()=>document.getElementById('registration-modal').classList.remove('active')});
+    }
+    function showEventDetails(){ alert('Event details coming soon!'); }
+  </script>
+
+  <!-- Supabase: inject live events into the Upcoming list (unchanged) -->
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const sb = createClient(
+      "https://zjxxmppahgpxoltdsfaq.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo"
+    );
+
+    const eventsList = document.getElementById("eventsList");
+
+    const monthAbbr = (d)=>["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getMonth()];
+
+    function eventCardHTML(ev){
+      const start=new Date(ev.starts_at);
+      const day=String(start.getDate()).padStart(2,"0");
+      const mon=monthAbbr(start);
+      const time=start.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+      const locationBadge = ev.location ? "Onsite" : "Online";
+      return `
+        <div class="event-card bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100" data-status="upcoming">
+          <div class="flex items-start space-x-4">
+            <div class="w-16 h-16 bg-green-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+              <span class="text-green-600 font-bold text-lg">${day}</span>
+              <span class="text-green-600 text-xs">${mon}</span>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="display-font text-xl font-bold text-gray-900">${ev.title || "Untitled event"}</h3>
+                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">${locationBadge}</span>
+              </div>
+              ${ev.description ? `<p class="text-gray-600 mb-3">${ev.description}</p>` : ""}
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-4 text-sm text-gray-500">
+                  <span>🕐 ${time}</span>
+                  <span>🎯 Open</span>
+                </div>
+                ${ev.location ? `<div class="text-sm text-gray-600">${ev.location}</div>` : ""}
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-sm text-gray-500"><span>🏆 50 points</span></div>
+                <button class="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors" onclick="registerForEvent('${ev.id || "db-event"}')">Register Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadEvents(){
+      if(!eventsList) return;
+      const { data, error } = await sb.from("public_events").select("*").order("starts_at",{ascending:true});
+      if(error || !data?.length) return;
+      eventsList.innerHTML = data.map(eventCardHTML).join("");
+      // subtle entrance
+      eventsList.querySelectorAll(".event-card").forEach((card,i)=>{
+        card.style.opacity=0; card.style.transform="translateY(30px)";
+        setTimeout(()=>{card.style.transition="transform .6s ease, opacity .6s ease"; card.style.opacity=1; card.style.transform="translateY(0)";}, i*100);
+      });
+    }
+    loadEvents();
+  </script>
+<footer class="bg-gray-900 text-white py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center space-x-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center">
+            <span class="text-white font-bold text-lg">🌱</span>
+          </div>
+          <span class="display-font text-2xl font-bold">GreenCell</span>
+        </div>
+        <p class="text-gray-400 leading-relaxed">
+          Empowering youth worldwide to create sustainable solutions and drive environmental change through education and collaboration.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-semibold text-lg mb-4">Platform</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li><a href="dashboard.html" class="hover:text-green-400 transition-colors">Dashboard</a></li>
+          <li><a href="innovation-lab.html" class="hover:text-green-400 transition-colors">Innovation Lab</a></li>
+          <li><a href="learning-hub.html" class="hover:text-green-400 transition-colors">Learning Hub</a></li>
+          <li><a href="events.html" class="hover:text-green-400 transition-colors">Events</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-semibold text-lg mb-4">Resources</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li><a href="#" class="hover:text-green-400 transition-colors">SDG Guide</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Project Templates</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Best Practices</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Impact Reports</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-semibold text-lg mb-4">Connect</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li><a href="#" class="hover:text-green-400 transition-colors">Community Forum</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Newsletter</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Social Media</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+      <p>&copy; 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
