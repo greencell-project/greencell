@@ -1,0 +1,426 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - GreenCell</title>
+
+  <!-- cache-buster + tailwind + fonts -->
+  <link rel="stylesheet" href="styles.css?v=1.0.1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--primary-green:#2D5A27;--success-green:#10B981;}
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#f0f9f0 0%,#ffffff 100%);background-attachment:fixed;}
+    .display-font{font-family:'Playfair Display',serif;}
+    .nav-link{position:relative;transition:all .3s ease;}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--success-green);transition:width .3s ease;}
+    .nav-link:hover::after{width:100%;}
+    /* Apply the same effect to gc-link anchors */
+    .gc-link{position:relative;transition:all .3s ease}
+    .gc-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--success-green);transition:width .3s ease}
+  .gc-link:hover::after{width:100%}
+  </style>
+  <!-- Icon flicker fix: brand leaf emoji without font load -->
+  <style>
+    #gc-nav .rounded-full.grid.place-content-center.text-white { position: relative; color: transparent; }
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before {
+      content: '\01F331'; /* 🌱 */
+      color: #fff; position: absolute; inset: 0; display: grid; place-content: center;
+    }
+  </style>
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+
+<body class="pt-16">
+  <!-- =========  NAVIGATION (identical on every page)  ========= -->
+  <!-- NAV: CONTACT -->
+<nav id="gc-nav" class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center text-white"></div>
+        <span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a data-link="home" href="index.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Home</a>
+        <a data-link="dashboard" href="dashboard.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Dashboard</a>
+        <a data-link="innovation" href="innovation-lab.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Innovation Lab</a>
+        <a data-link="hub" href="learning-hub.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Learning Hub</a>
+        <a data-link="events" href="events.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Events</a>
+        <a data-link="contact" href="contact.html" class="gc-link font-medium text-green-600">Contact</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative group" id="gc-avatar-wrap">
+          <img id="gc-avatar" alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" />
+          <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden group-hover:block z-50 gc-avatar-menu">
+            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Account Settings</a>
+            <button type="button" data-gc-logout class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+          </div>
+        </div>
+        <div class="leading-tight">
+          <div id="gc-name" class="text-sm font-medium text-gray-800">�?"</div>
+          <div id="gc-role" class="text-[11px] text-gray-500">�?"</div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+<style>
+  /* prevent flicker: keep hidden until final src decided */
+  #gc-avatar { visibility: hidden; }
+</style>
+<!-- Load Supabase UMD once; if already present, this will be cached -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  if (!window.__gcContactNavOnce) {
+    window.__gcContactNavOnce = true;
+
+    const SUPABASE_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Expose for navbar logout consistency
+    try { window.sb = sb; if (!window.__supabase) window.__supabase = sb; } catch(_) {}
+
+    const imgEl  = document.getElementById("gc-avatar");
+    const nameEl = document.getElementById("gc-name");
+    const roleEl = document.getElementById("gc-role");
+
+    // lock to prevent later scripts from changing src
+    function lockAvatarTo(srcValue){
+      if (!imgEl) return;
+      imgEl.setAttribute("data-avatar-lock", "1");
+      window.__GC_AVATAR_FINAL_SRC = srcValue || "";
+      // Observe mutations and revert if anything tries to change it
+      const obs = new MutationObserver((mutList) => {
+        mutList.forEach(m => {
+          if (m.type === "attributes" && m.attributeName === "src") {
+            const desired = window.__GC_AVATAR_FINAL_SRC || "";
+            const current = imgEl.getAttribute("src") || "";
+            if (desired && current !== desired) {
+              imgEl.setAttribute("src", desired);
+            }
+          }
+        });
+      });
+      obs.observe(imgEl, { attributes: true, attributeFilter: ["src"] });
+    }
+
+    function displayNameFrom(profile, user) {
+      const full   = (profile && profile.full_name ? String(profile.full_name) : "").trim();
+      const usern  = (profile && profile.username  ? String(profile.username)  : "").trim();
+      const handle = (user && user.email ? String(user.email).split("@")[0] : "User");
+      return full || usern || handle;
+    }
+    function letterAvatar(name, size = 64) {
+      const c = document.createElement("canvas"); c.width = c.height = size;
+      const ctx = c.getContext("2d");
+      const t = (name || "U");
+      let h = 0; for (let i=0; i<t.length; i++) h = (h*31 + t.charCodeAt(i)) >>> 0;
+      ctx.fillStyle = `hsl(${h%360} 70% 55%)`; ctx.fillRect(0,0,size,size);
+      ctx.fillStyle = "#fff"; ctx.font = `${Math.floor(size*0.55)}px Inter, Arial`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText((t[0] || "U").toUpperCase(), size/2, size/2);
+      return c.toDataURL("image/png");
+    }
+    async function resolveAvatarUrl(profile) {
+      const raw = (profile && profile.avatar_url ? String(profile.avatar_url).trim() : "");
+      if (raw && /^https?:\/\//i.test(raw)) return raw; // already URL
+      if (raw) {
+        const pub = sb.storage.from("avatars").getPublicUrl(raw)?.data?.publicUrl;
+        if (pub) return pub;
+        const { data: signed } = await sb.storage.from("avatars").createSignedUrl(raw, 60*60*24*365);
+        if (signed && signed.signedUrl) return signed.signedUrl;
+      }
+      return ""; // no uploaded avatar
+    }
+
+    (async () => {
+      if (!imgEl) return;
+      imgEl.style.visibility = "hidden"; // keep hidden while we decide
+
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) {
+        const url = letterAvatar("Guest", 64);
+        lockAvatarTo(url);
+        imgEl.setAttribute("src", url);
+        imgEl.style.visibility = "visible";
+        if (nameEl) nameEl.textContent = "Guest";
+        if (roleEl) roleEl.textContent = "visitor";
+        return;
+      }
+
+      const { data: profile } = await sb
+        .from("profiles")
+        .select("full_name, username, role, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const displayName = displayNameFrom(profile, user);
+      if (nameEl) nameEl.textContent = displayName;
+      if (roleEl) roleEl.textContent = (profile && profile.role ? profile.role : "user");
+
+      const finalUrl = await resolveAvatarUrl(profile);
+      if (finalUrl) {
+        const probe = new Image();
+        probe.decoding = "async";
+        probe.referrerPolicy = "no-referrer";
+        probe.onload  = () => {
+          lockAvatarTo(finalUrl);
+          imgEl.setAttribute("src", finalUrl);
+          imgEl.style.visibility = "visible";
+        };
+        probe.onerror = () => {
+          const fallback = letterAvatar(displayName, 64);
+          lockAvatarTo(fallback);
+          imgEl.setAttribute("src", fallback);
+          imgEl.style.visibility = "visible";
+        };
+        probe.src = finalUrl;
+      } else {
+        const fallback = letterAvatar(displayName, 64);
+        lockAvatarTo(fallback);
+        imgEl.setAttribute("src", fallback);
+        imgEl.style.visibility = "visible";
+      }
+    })();
+
+    // optional: refresh after Settings upload
+    window.addEventListener("storage", (e) => {
+      if (e.key === "gc_avatar_refresh" && e.newValue === "1") {
+        location.reload();
+      }
+    });
+  }
+</script>
+
+<script>
+  (function(){
+    function bindNavLogout(){
+      document.querySelectorAll('[data-gc-logout]').forEach(function(btn){
+        btn.addEventListener('click', async function(e){
+          e.preventDefault();
+          try {
+            if (window.Auth && window.Auth.signOut) { await window.Auth.signOut(); return; }
+            if (window.__supabase && window.__supabase.auth && window.__supabase.auth.signOut) { await window.__supabase.auth.signOut(); }
+            if (window.sb && window.sb.auth && window.sb.auth.signOut) { await window.sb.auth.signOut(); }
+            else if (window.navSb && window.navSb.auth && window.navSb.auth.signOut) { await window.navSb.auth.signOut(); }
+            else if (window.sbDash && window.sbDash.auth && window.sbDash.auth.signOut) { await window.sbDash.auth.signOut(); }
+            else if (window.supabase && window.supabase.auth && window.supabase.auth.signOut) { await window.supabase.auth.signOut(); }
+          } catch (err) { /* ignore */ }
+          location.href = 'login.html';
+        });
+      });
+    }
+    function bindAvatarMenu(){
+      document.querySelectorAll('#gc-avatar-wrap').forEach(function(wrap){
+        var panel = wrap.querySelector('.gc-avatar-menu');
+        if (!panel) return;
+        var hideTo = null;
+        function show(){ if (hideTo) clearTimeout(hideTo); panel.classList.remove('hidden'); }
+        function hide(){ hideTo = setTimeout(function(){ panel.classList.add('hidden'); }, 350); }
+        wrap.addEventListener('mouseenter', show);
+        wrap.addEventListener('mouseleave', hide);
+        var img = wrap.querySelector('#gc-avatar');
+        if (img){ img.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); panel.classList.toggle('hidden'); }); }
+        panel.addEventListener('mouseenter', show);
+        panel.addEventListener('mouseleave', hide);
+      });
+      document.addEventListener('click', function(){
+        document.querySelectorAll('.gc-avatar-menu').forEach(function(p){ p.classList.add('hidden'); });
+      });
+    }
+    bindNavLogout();
+    bindAvatarMenu();
+  })();
+</script>
+<div style="height:64px"></div>
+
+<div style="height:64px"></div>
+
+
+
+  <!-- =========  MAIN CONTENT  ========= -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-10">
+      <h1 class="display-font text-4xl font-bold text-gray-900 mb-2">Contact Us</h1>
+      <p class="text-lg text-gray-600">Questions, feedback, or partnership ideas? Drop us a line.</p>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="bg-white/80 backdrop-blur-md rounded-2xl p-8 border border-gray-100 shadow">
+      <form id="contactForm" class="space-y-5">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <input required name="name" type="text" placeholder="Your Name" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+          <input required name="email" type="email" placeholder="Email Address" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+        </div>
+        <input name="subject" type="text" placeholder="Subject (optional)" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none w-full">
+        <textarea required name="message" rows="5" placeholder="Your message..." class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none w-full"></textarea>
+        <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">Send Message</button>
+      </form>
+      <p class="text-xs text-gray-500 mt-4">We'll reply to <strong>aadit.issar@gmail.com</strong> within 24 h.</p>
+    </div>
+
+    <!-- About / Team -->
+    <div class="mt-16 text-center">
+      <h2 class="display-font text-3xl font-bold text-gray-900 mb-6">Meet the Team</h2>
+      <div class="grid sm:grid-cols-3 gap-6">
+        <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100 text-center">
+          <div class="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4"></div>
+          <h3 class="font-bold text-gray-900">Aadit Issar</h3>
+          <p class="text-sm text-green-700 font-medium mb-2">Founder & Lead Developer</p>
+          <p class="text-sm text-gray-600">Climate-tech engineer who loves open-source & youth empowerment.</p>
+        </div>
+        <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100 text-center">
+          <div class="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4"></div>
+          <h3 class="font-bold text-gray-900">Emma Chen</h3>
+          <p class="text-sm text-blue-700 font-medium mb-2">Community Manager</p>
+          <p class="text-sm text-gray-600">Connects students & mentorsâ€”making collaboration seamless.</p>
+        </div>
+        <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100 text-center">
+          <div class="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4"></div>
+          <h3 class="font-bold text-gray-900">Marcus Johnson</h3>
+          <p class="text-sm text-purple-700 font-medium mb-2">Mentor Coordinator</p>
+          <p class="text-sm text-gray-600">Recruits expert mentors across all sustainability fields.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========  FOOTER  (copy from index.html)  ========= -->
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center"><span class="text-white font-bold text-lg">ðŸŒ±</span></div>
+            <span class="display-font text-2xl font-bold">GreenCell</span>
+          </div>
+          <p class="text-gray-400 leading-relaxed">Empowering youth worldwide to create sustainable solutions and drive environmental change.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Platform</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="dashboard.html" class="hover:text-green-400 transition-colors">Dashboard</a></li>
+            <li><a href="innovation-lab.html" class="hover:text-green-400 transition-colors">Innovation Lab</a></li>
+            <li><a href="learning-hub.html" class="hover:text-green-400 transition-colors">Learning Hub</a></li>
+            <li><a href="events.html" class="hover:text-green-400 transition-colors">Events</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Resources</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="#" class="hover:text-green-400 transition-colors">SDG Guide</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Project Templates</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Best Practices</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Impact Reports</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Connect</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="contact.html" class="hover:text-green-400 transition-colors">Contact Us</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Community Forum</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Newsletter</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Social Media</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <p>&copy; 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========  FORM HANDLER  ========= -->
+  
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const sb = createClient("https://zjxxmppahgpxoltdsfaq.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo");
+  // CONTACT
+  const contactForm = document.getElementById("contactForm");
+  if (contactForm) {
+    contactForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(contactForm));
+      const { error } = await sb.from("contacts").insert({
+        name: d.name || null,
+        email: d.email || null,
+        subject: d.subject || null,
+        message: d.message || null
+      });
+      alert(error ? "Failed to send. Please try again." : "Thanks! We received your message.");
+      if (!error) contactForm.reset();
+    });
+  }
+
+  // EVENTS (public view)
+  const eventsList = document.getElementById("eventsList");
+  if (eventsList) {
+    const { data, error } = await sb.from("public_events").select("*");
+    eventsList.innerHTML = error || !data?.length
+      ? "<p class='text-gray-600'>No upcoming events.</p>"
+      : data.map(ev => `
+        <article class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100 shadow">
+          <h3 class="text-xl font-semibold mb-1">{}ev.title{}</h3>
+          <p class="text-sm text-gray-600 mb-2"><strong>When:</strong> ${new Date(ev.starts_at).toLocaleString()}</p>
+          ${ev.location ? `<p class="text-sm text-gray-600 mb-2"><strong>Where:</strong> ${ev.location}</p>` : ""}
+          ${ev.description ? `<p class="text-gray-700">$${ev.description}</p>` : ""}
+        </article>
+      `).join("");
+  }
+
+  // PROJECTS list
+  const projectList = document.getElementById("projectList");
+  if (projectList) {
+    const { data, error } = await sb.from("projects").select("*").order("created_at", { ascending:false });
+    projectList.innerHTML = error || !data?.length
+      ? "<p class='text-gray-600'>No projects yet.</p>"
+      : data.map(p => `
+        <article class="bg-white/80 backdrop-blur-md rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6">
+            <h3 class="text-xl font-semibold mb-2"><a href="innovation-lab.html?slug=${encodeURIComponent(p.slug)}">${'}{'}p.title{}</a></h3>
+            ${p.summary ? `<p class='text-gray-700 mb-2'>${p.summary}</p>` : ""}
+            <span class="inline-block text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">${'}{'}p.status{}</span>
+          </div>
+        </article>
+      `).join("");
+  }
+
+  // PROJECT detail
+  const params = new URLSearchParams(location.search);
+  const slug = params.get("slug");
+  const projectTitleEl = document.getElementById("projectTitle");
+  const projectBodyEl  = document.getElementById("projectBody");
+  if (slug && projectTitleEl && projectBodyEl) {
+    const { data: proj } = await sb.from("projects").select("*").eq("slug", slug).maybeSingle();
+    if (!proj) {
+      projectTitleEl.textContent = "Project not found";
+      projectBodyEl.innerHTML = "";
+    } else {
+      projectTitleEl.textContent = proj.title;
+      projectBodyEl.innerHTML = `
+        ${proj.summary ? `<p>${proj.summary}</p>` : ""}
+        <p class="mt-2 text-sm text-gray-600">Status: <strong>${proj.status}</strong></p>
+      `;
+    }
+  }
+</script>
+
+
+  <script src="js/emoji-fix.js"></script>
+</body></html>
+
+
+
+
+

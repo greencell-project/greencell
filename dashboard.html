@@ -1,0 +1,781 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - GreenCell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary-green:#2D5A27;--secondary-green:#4A7C59;--success-green:#10B981;
+    }
+    body{font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(135deg,#f0f9f0 0%,#ffffff 100%);background-attachment:fixed}
+    .display-font{font-family:"Playfair Display",serif}
+    .dashboard-card{transition:.3s;backdrop-filter:blur(10px)}
+    .dashboard-card:hover{transform:translateY(-4px);box-shadow:0 15px 30px rgba(0,0,0,.08)}
+    .sidebar-item{transition:.2s}
+    .sidebar-item.active{background:rgba(45,90,39,.14);border-right:4px solid var(--primary-green)}
+    .sidebar-item:hover{background:rgba(45,90,39,.08);transform:translateX(2px)}
+    .clickable{cursor:pointer}
+  </style>
+</head>
+<body class="min-h-screen">
+
+<nav id="gc-nav" class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center text-white">🌱</div>
+        <span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a data-link="home" href="index.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Home</a>
+        <a data-link="dashboard" href="dashboard.html" class="gc-link font-medium text-green-600">Dashboard</a>
+        <a data-link="innovation" href="innovation-lab.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Innovation Lab</a>
+        <a data-link="hub" href="learning-hub.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Learning Hub</a>
+        <a data-link="events" href="events.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Events</a>
+        <a data-link="contact" href="contact.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Contact</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative group" id="gc-avatar-wrap">
+          <img id="gc-avatar" alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" />
+          <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden group-hover:block z-50 gc-avatar-menu">
+            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Account Settings</a>
+            <button type="button" data-gc-logout class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+          </div>
+        </div>
+        <div class="leading-tight">
+          <div id="gc-name" class="text-sm font-medium text-gray-800">-</div>
+          <div id="gc-role" class="text-[11px] text-gray-500">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script type="module">
+  const SUPABASE_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+
+  let createClient;
+  try { ({ createClient } = await import("https://esm.sh/@supabase/supabase-js@2")); }
+  catch { createClient = window.supabase?.createClient; }
+  if (!createClient) console.error("Supabase client could not be loaded.");
+  const sbDash = createClient ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : undefined;
+
+  try {
+    window.sbDash = sbDash;
+    if (!window.__supabase) window.__supabase = sbDash;
+  } catch(_) {}
+
+  function bindNavLogout(){
+    document.querySelectorAll('[data-gc-logout]').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.preventDefault();
+        try {
+          if (window.Auth && window.Auth.signOut) { await window.Auth.signOut(); return; }
+          if (window.__supabase?.auth?.signOut) await window.__supabase.auth.signOut();
+          else if (window.navSb?.auth?.signOut) await window.navSb.auth.signOut();
+          else if (window.sb?.auth?.signOut) await window.sb.auth.signOut();
+          else if (window.sbDash?.auth?.signOut) await window.sbDash.auth.signOut();
+          else if (window.supabase?.auth?.signOut) await window.supabase.auth.signOut();
+        } catch(_) {}
+        location.href = 'login.html';
+      });
+    });
+  }
+  bindNavLogout();
+
+  function displayNameFrom(profile, user){
+    const full   = (profile?.full_name ?? "").trim();
+    const usern  = (profile?.username  ?? "").trim();
+    const handle = user?.email?.split("@")[0] || "User";
+    return full || usern || handle;
+  }
+
+  function letterAvatarDataURL(name, size = 64){
+    const c = document.createElement("canvas"); c.width = c.height = size;
+    const ctx = c.getContext("2d");
+    const t = (name || "U");
+    let h = 0; for(let i=0;i<t.length;i++) h = (h*31 + t.charCodeAt(i)) >>> 0;
+    ctx.fillStyle = `hsl(${h%360} 70% 55%)`; ctx.fillRect(0,0,size,size);
+    ctx.fillStyle = "#fff"; ctx.font = `${Math.floor(size*0.55)}px Inter, Arial`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(t[0]?.toUpperCase() || "U", size/2, size/2);
+    return c.toDataURL("image/png");
+  }
+
+  async function resolveAvatarUrl(profile, user, displayName){
+    const raw = (profile?.avatar_url ?? "").trim();
+    if (raw && /^https?:\/\//i.test(raw)) return raw;
+    if (raw){
+      const { data: pub } = sbDash.storage.from("avatars").getPublicUrl(raw);
+      if (pub?.publicUrl) return pub.publicUrl;
+      const { data: signed } = await sbDash.storage.from("avatars").createSignedUrl(raw, 60*60*24*365);
+      if (signed?.signedUrl) return signed.signedUrl;
+    }
+    return letterAvatarDataURL(displayName, 64);
+  }
+
+  async function initDashNav(){
+    const imgEl  = document.getElementById("gc-avatar");
+    const nameEl = document.getElementById("gc-name");
+    const roleEl = document.getElementById("gc-role");
+    if (!imgEl) return;
+
+    const { data: { user } } = await sbDash.auth.getUser();
+    if (!user){
+      imgEl.src = letterAvatarDataURL("Guest", 64);
+      if (nameEl) nameEl.textContent = "Guest";
+      if (roleEl) roleEl.textContent = "visitor";
+      return;
+    }
+    const { data: profile } = await sbDash.from("profiles").select("full_name, username, role, avatar_url").eq("id", user.id).maybeSingle();
+    const displayName = displayNameFrom(profile, user);
+    if (nameEl) nameEl.textContent = displayName;
+    if (roleEl) roleEl.textContent = (profile?.role || "user");
+    // Show immediate fallback to avoid empty avatar, then upgrade to uploaded URL
+    imgEl.src = letterAvatarDataURL(displayName, 64);
+    try {
+      const url = await resolveAvatarUrl(profile, user, displayName);
+      imgEl.decoding = "async"; imgEl.referrerPolicy = "no-referrer"; imgEl.src = url;
+      imgEl.onerror = () => { imgEl.src = letterAvatarDataURL(displayName, 64); };
+    } catch (_) {
+      imgEl.src = letterAvatarDataURL(displayName, 64);
+    }
+  }
+  initDashNav();
+  window.addEventListener("storage", (e) => {
+    if (e.key === "gc_avatar_refresh" && e.newValue === "1"){
+      initDashNav().finally(() => localStorage.removeItem("gc_avatar_refresh"));
+    }
+  });
+  // Keep avatar menu open on hover/click; add a brief hide delay for usability
+  (function(){
+    const wrap = document.getElementById('gc-avatar-wrap');
+    if (!wrap) return;
+    const panel = wrap.querySelector('.gc-avatar-menu');
+    const img   = wrap.querySelector('#gc-avatar');
+    if (!panel) return;
+    let hideTimer;
+    const show = () => { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } panel.classList.remove('hidden'); };
+    const scheduleHide = () => { if (hideTimer) clearTimeout(hideTimer); hideTimer = setTimeout(() => { panel.classList.add('hidden'); }, 250); };
+    wrap.addEventListener('mouseenter', show);
+    wrap.addEventListener('mouseleave', scheduleHide);
+    if (img) img.addEventListener('click', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      if (panel.classList.contains('hidden')) show(); else panel.classList.add('hidden');
+    });
+    panel.addEventListener('mouseenter', show);
+    panel.addEventListener('mouseleave', scheduleHide);
+    document.addEventListener('click', () => panel.classList.add('hidden'));
+  })();
+</script>
+
+<div style="height:64px"></div>
+<div class="pt-16 min-h-screen">
+  <div class="flex">
+    <aside class="w-64 bg-white/80 backdrop-blur-md border-r border-gray-200 min-h-screen">
+      <div class="p-6">
+        <div class="flex items-center space-x-3 mb-6">
+          <img data-user-avatar class="w-12 h-12 rounded-full object-cover" alt="Me"/>
+          <div>
+            <h3 data-user-name class="font-semibold text-gray-900"></h3>
+            <span data-user-role class="px-2 py-1 rounded-full text-white text-xs" style="background:linear-gradient(135deg,var(--primary-green),var(--secondary-green))"></span>
+          </div>
+        </div>
+        <nav class="space-y-2">
+          <a href="#" class="sidebar-item active flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700"><span class="text-xl">📊</span><span class="font-medium">Overview</span></a>
+          <a href="innovation-lab.html" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700"><span class="text-xl">🔬</span><span class="font-medium">My Projects</span></a>
+          <a href="learning-hub.html" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700"><span class="text-xl">📚</span><span class="font-medium">Learning</span></a>
+          <a href="events.html" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700"><span class="text-xl">🗓️</span><span class="font-medium">Events</span></a>
+          <a href="settings.html" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700"><span class="text-xl">⚙️</span><span class="font-medium">Settings</span></a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <div class="mb-8">
+        <div class="rounded-3xl p-8 text-white border border-green-800/10 shadow" style="background:linear-gradient(90deg,#167A3B,#1E8F4B)">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h1 class="display-font text-4xl font-bold">Welcome back, <span data-user-name></span>! 👋</h1>
+              <p class="text-lg opacity-90">Track your impact, manage your projects, and explore the community.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full bg-white/15 text-sm backdrop-blur">🌱 Sustainability</span>
+              <span class="px-3 py-1 rounded-full bg-white/15 text-sm backdrop-blur">🔬 Innovation</span>
+              <span class="px-3 py-1 rounded-full bg-white/15 text-sm backdrop-blur">📚 Learning</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+          <div class="flex items-center justify-between mb-4"><div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"><span class="text-green-600 text-xl">🏆</span></div><span class="text-sm text-gray-500">This month</span></div>
+          <h3 id="stat-points" class="text-2xl font-bold text-gray-900 mb-1">0</h3>
+          <p class="text-gray-600">Impact Points</p>
+          <div id="stat-points-detail" class="mt-4 text-sm text-green-600">↗ +0 this period</div>
+        </div>
+
+        <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+          <div class="flex items-center justify-between mb-4"><div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"><span class="text-blue-600 text-xl">🔬</span></div><span class="text-sm text-gray-500">Active</span></div>
+          <h3 id="stat-projects" class="text-2xl font-bold text-gray-900 mb-1">0</h3>
+          <p class="text-gray-600">Projects</p>
+          <div id="stat-projects-detail" class="mt-4 text-sm text-blue-600">—</div>
+        </div>
+
+        <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+          <div class="flex items-center justify-between mb-4"><div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center"><span class="text-purple-600 text-xl">📚</span></div><span class="text-sm text-gray-500">Completed</span></div>
+          <h3 id="stat-modules" class="text-2xl font-bold text-gray-900 mb-1">0</h3>
+          <p class="text-gray-600">Learning Modules</p>
+          <div id="stat-modules-detail" class="mt-4 text-sm text-purple-600">—</div>
+        </div>
+
+        <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100 clickable" id="card-badges">
+          <div class="flex items-center justify-between mb-4"><div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center"><span class="text-yellow-600 text-xl">🏅</span></div><span class="text-sm text-gray-500">Earned</span></div>
+          <h3 id="stat-badges" class="text-2xl font-bold text-gray-900 mb-1">0</h3>
+          <p class="text-gray-600">Badges</p>
+          <div id="badge-title-large" class="mt-1 text-xl md:text-2xl font-extrabold text-gray-900 leading-tight"></div>
+          <div id="stat-badges-detail" class="mt-4 text-sm text-yellow-600">—</div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-8">
+        <section class="lg:col-span-2 space-y-8">
+          <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="display-font text-2xl font-bold text-gray-900">Current Projects</h2>
+              <a href="innovation-lab.html" class="text-green-600 hover:text-green-700 font-medium">View All</a>
+            </div>
+            <div id="projects-list" class="space-y-4"></div>
+          </div>
+        </section>
+
+        <aside class="space-y-8">
+          <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="display-font text-xl font-bold text-gray-900">Upcoming</h2>
+              <a href="events.html" class="text-green-600 hover:text-green-700 text-sm font-medium">View All</a>
+            </div>
+            <div id="upcoming-list" class="space-y-4"></div>
+          </div>
+
+          <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="display-font text-xl font-bold text-gray-900">School Leaderboard</h2>
+              <span class="text-xs text-gray-500">This month</span>
+            </div>
+            <div id="leaderboard-list" class="space-y-3"></div>
+          </div>
+
+          <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+            <h2 class="display-font text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+            <div class="space-y-3">
+              <a href="innovation-lab.html" class="block text-center bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium">➕ Start New Project</a>
+              <a href="learning-hub.html" class="block text-center bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg font-medium">📚 Continue Learning</a>
+              <a href="events.html" class="block text-center bg-lime-600 hover:bg-lime-700 text-white py-3 rounded-lg font-medium">🗓️ Join Event</a>
+              <button class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-medium" onclick="alert('Coming soon!')">👥 Find Team Members</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const supabase = createClient("https://zjxxmppahgpxoltdsfaq.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo");
+
+  // Admin helpers (match Innovation Lab)
+  const ADMIN_UID = "eb1c13db-4f27-4d1f-aa45-0ef7ca010b26";
+  function isAdminRole(role){
+    const r = String(role || '').trim().toLowerCase();
+    return r === 'admin' || r === 'administrator' || r === 'superadmin';
+  }
+
+  // Resolve admin for the current session and expose it as window.isAdminUser
+  async function resolveAdmin() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) { window.isAdminUser = false; return false; }
+
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    window.isAdminUser =
+      (typeof isAdminRole === 'function' && isAdminRole(prof?.role)) ||
+      (session.user.id === ADMIN_UID);
+
+    return window.isAdminUser;
+  }
+
+  const BADGE_STEPS = Array.from({length: 21}, (_, i) => ({ at: i*1000, name: i===0 ? "Seedling" : `${i*1000} pts` }));
+
+  const { data:{ session } } = await supabase.auth.getSession();
+  if(!session){
+    const rt = encodeURIComponent('dashboard.html');
+    location.href = `login.html?returnTo=${rt}`;
+    throw new Error('No session');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username, full_name, role, avatar_url')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
+  function colorFrom(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return `hsl(${h%360} 70% 50%)`; }
+  function letterAvatar(text, size=96){
+    const c=document.createElement('canvas'); c.width=c.height=size;
+    const ctx=c.getContext('2d'); ctx.fillStyle=colorFrom(text||'U'); ctx.fillRect(0,0,size,size);
+    ctx.fillStyle='#fff'; ctx.font=`${Math.floor(size*0.55)}px Inter, Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(((text||'U')[0]||'U').toUpperCase(), size/2, size/2); return c.toDataURL('image/png');
+  }
+
+  const displayName = (profile?.full_name?.trim()) || (profile?.username?.trim()) || (session.user.email?.split('@')[0] ?? 'User');
+  const role = (profile?.role || 'student').replace(/^\w/, c=>c.toUpperCase());
+  const avatarSrc = profile?.avatar_url ? (await (async ()=>{
+    if (profile?.avatar_url && /^(?:https?:\/\/|data:image\/)/i.test(profile.avatar_url)) return profile.avatar_url;
+    const { data: pub } = supabase.storage.from('avatars').getPublicUrl(profile.avatar_url);
+    return pub?.publicUrl || letterAvatar(displayName);
+  })()) : letterAvatar(displayName);
+
+  document.querySelectorAll('[data-user-name]').forEach(el=>el.textContent=displayName);
+  document.querySelectorAll('[data-user-role]').forEach(el=>el.textContent=role);
+  document.querySelectorAll('[data-user-avatar]').forEach(el=>{ el.src = avatarSrc; });
+
+  const staticProjects = [
+    { slug:'campus-recycling-revolution', title:'Campus Recycling Revolution', summary:'Implementing comprehensive recycling program to reduce campus waste by 60%', status:'in-progress', sdg:'12,13', starts_at:'2025-11-18', ends_at:'2025-12-28', image:'resources/recycling-project.jpg', teamText:'+3 more', progress:75 },
+    { slug:'solar-learning-lab', title:'Solar Learning Lab', summary:'Hands-on renewable energy education program with solar panel installations', status:'completed', sdg:'7,9', starts_at:'2024-01-01', ends_at:'2024-05-01', image:'resources/renewable-energy.jpg', teamText:'Dr. Sarah Kim', progress:100 },
+    { slug:'urban-food-forest', title:'Urban Food Forest', summary:'Community garden promoting sustainable agriculture and biodiversity', status:'planning', sdg:'2,15', starts_at:'2025-12-05', ends_at:'2026-05-01', image:'resources/community-garden.jpg', teamText:'Marcus Johnson', progress:25 },
+  ];
+
+  function pickImage(p){
+    const sdgStr = (p.sdg ? String(p.sdg) : '').toLowerCase();
+    if(sdgStr.includes('7')) return 'resources/renewable-energy.jpg';
+    if(sdgStr.includes('12') || sdgStr.includes('13')) return 'resources/recycling-project.jpg';
+    return 'resources/community-garden.jpg';
+  }
+
+  function badgeFor(p){
+    const sraw = (p?.status || '').toLowerCase().replace(/[_\s-]+/g,'-');
+    if (sraw === 'completed')   return { label: 'Completed',   cls: 'bg-green-100 text-green-800',  filter: 'completed' };
+    if (sraw === 'planning')    return { label: 'Planning',    cls: 'bg-blue-100 text-blue-800',    filter: 'planning' };
+    if (sraw === 'in-progress') return { label: 'In Progress', cls: 'bg-yellow-100 text-yellow-800',filter: 'in-progress' };
+    const now = new Date();
+    const toDate = (v)=>{ try{ return v? new Date(v): null }catch{ return null } };
+    const s = toDate(p?.starts_at), e = toDate(p?.ends_at);
+    if (e && now > e) return { label:'Completed', cls:'bg-green-100 text-green-800', filter:'completed' };
+    if (s && now < s) return { label:'Planning',  cls:'bg-blue-100 text-blue-800',  filter:'planning' };
+    return { label:'In Progress', cls:'bg-yellow-100 text-yellow-800', filter:'in-progress' };
+  }
+
+  function projectCard(p){
+    const b=badgeFor(p);
+    const img = p.image || pickImage(p);
+    const progress = p.progress ?? (b.filter==='completed'?100 : b.filter==='planning'?20 : 60);
+    const teamRight = b.filter==='completed' ? '🏆 200 pts • 📊 Impact measured' :
+                      b.filter==='planning'  ? '📋 Planning phase • 🗓️ Starts soon' :
+                      '🎯 '+progress+'% complete • ⏱️ soon';
+    const left = (p.teamText||'').length? p.teamText : 'Team';
+    return `
+      <a href="innovation-lab.html?slug=${encodeURIComponent(p.slug || '')}" class="block project-status bg-gray-50 rounded-xl p-4 border border-gray-200">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-gray-900">${p.title||'Untitled Project'}</h3>
+          <span class="${b.cls} px-2 py-1 rounded-full text-xs font-medium">${b.label}</span>
+        </div>
+        <p class="text-gray-600 text-sm mb-3">${p.summary||''}</p>
+        <div class="flex items-center justify-between text-xs text-gray-500">
+          <div class="flex items-center gap-2">
+            <img src="${img}" class="w-10 h-10 rounded-lg object-cover" alt="thumb">
+            <span>${left}</span>
+          </div>
+          <div class="flex items-center gap-4"><span>${teamRight}</span></div>
+        </div>
+        <div class="mt-3 w-full bg-gray-200 rounded-full h-2"><div class="${b.filter==='completed'?'bg-green-500':b.filter==='planning'?'bg-blue-500':'bg-yellow-500'} h-2 rounded-full" style="width:${progress}%"></div></div>
+      </a>`;
+  }
+
+  function tile(date){
+    const d = new Date(date);
+    const day = String(d.getDate());
+    const month = d.toLocaleString(undefined,{month:'short'});
+    const cls = ['bg-green-100 text-green-700','bg-blue-100 text-blue-700','bg-purple-100 text-purple-700','bg-rose-100 text-rose-700'][d.getDate() % 4];
+    return `<div class="w-12 h-12 ${cls} rounded-lg flex items-center justify-center flex-shrink-0"><span class="font-bold text-sm">${day}</span></div>`;
+  }
+
+  function upcomingRow(title, date, timeText=''){
+    const d = new Date(date);
+    const human = d.toLocaleString(undefined,{month:'short', day:'numeric', year:'numeric'}) + (timeText?` • ${timeText}`:'');
+    return `<div class="flex items-start gap-3">${tile(d)}<div><h3 class="font-semibold text-gray-900 text-sm">${title}</h3><p class="text-xs text-gray-500">${human}</p></div></div>`;
+  }
+
+  async function loadLiveProjects(){
+    const list = [];
+    const { data: mine } = await supabase.from('projects')
+      .select('id, slug, title, summary, status, sdg, starts_at, ends_at, is_approved, is_awarded, created_at')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending:false });
+    if(mine && Array.isArray(mine)) list.push(...mine);
+
+    try{
+      const { data: approved } = await supabase.from('projects')
+        .select('id, slug, title, summary, status, sdg, starts_at, ends_at, is_approved, is_awarded, created_at')
+        .eq('is_approved', true)
+        .order('created_at',{ascending:false});
+      if(approved) list.push(...approved);
+    }catch{}
+
+    // If admin, also fetch EVERYONE's unapproved ideas
+    let ideasAll = [];
+    try {
+      console.log('[admin?]', window.isAdminUser);
+      if (window.isAdminUser === true) {
+        const { data: unapproved, error: qErr } = await supabase.from('projects')
+          .select('id, slug, title, summary, status, sdg, starts_at, ends_at, is_approved, is_awarded, created_at')
+          .eq('is_approved', false)
+          .order('created_at', { ascending:false });
+        if (!qErr && unapproved) ideasAll = unapproved;
+      }
+    } catch {}
+
+    if (ideasAll.length) list.push(...ideasAll);
+
+    const seen = new Set(); const merged=[];
+    for(const p of list){
+      const key = p.slug || p.id;
+      if(!key) continue;
+      if(seen.has(key)) continue;
+      seen.add(key); merged.push(p);
+    }
+    return merged;
+  }
+
+  const projectsList = document.getElementById('projects-list');
+  const upcomingList = document.getElementById('upcoming-list');
+
+  await resolveAdmin();   // sets window.isAdminUser
+  const live = await loadLiveProjects();
+  const active = live.filter(p=>badgeFor(p).filter!=='completed');
+
+  try {
+    const isAwarded = (p) => (p && (p.is_awarded===true || p.is_awarded==='true' || p.is_awarded===1 || p.is_awarded==='1'));
+    const combinedForKpi = [...(Array.isArray(live)?live:[]), ...(Array.isArray(staticProjects)?staticProjects:[])]
+      .filter(p => !isAwarded(p));
+
+    const kpiInProg   = combinedForKpi.filter(p => (badgeFor(p)||{}).filter === 'in-progress').length;
+    const kpiPlanning = combinedForKpi.filter(p => (badgeFor(p)||{}).filter === 'planning').length;
+    const kpiCompleted= combinedForKpi.filter(p => (badgeFor(p)||{}).filter === 'completed').length;
+
+    const statEl     = document.getElementById('stat-projects');
+    const statDetail = document.getElementById('stat-projects-detail');
+    if (statEl)     statEl.textContent = String(kpiInProg + kpiPlanning + kpiCompleted);
+    if (statDetail) statDetail.textContent = `${kpiInProg} in progress, ${kpiPlanning} planning, ${kpiCompleted} completed`;
+  } catch (err) { console.warn('KPI counters failed', err); }
+
+  function renderProjects(){
+    projectsList.innerHTML='';
+    const activeStatic = staticProjects.filter(p=>badgeFor(p).filter!=='completed');
+    const activeLive = active;
+    const combined = [...activeLive, ...activeStatic];
+    if(!combined.length){
+      projectsList.innerHTML = '<p class="text-sm text-gray-500">No current projects yet.</p>';
+      return;
+    }
+    projectsList.insertAdjacentHTML('beforeend', combined.map(projectCard).join(''));
+  }
+  renderProjects();
+
+  function renderUpcoming(){
+    upcomingList.innerHTML = '';
+    const now = new Date();
+    const oneWeek = 7*24*60*60*1000;
+    const ensureFutureDate = (p, idx) => {
+      const s = p.starts_at ? new Date(p.starts_at) : null;
+      const e = p.ends_at ? new Date(p.ends_at) : null;
+      let d = s || e || new Date(Date.now() + (idx+1)*oneWeek);
+      if (isNaN(d)) d = new Date(Date.now() + (idx+1)*oneWeek);
+      if (d <= now) d = new Date(Date.now() + (idx+1)*oneWeek);
+      return d;
+    };
+
+    const fromLive = active.map((p,i)=>({title:p.title||'Project', date: ensureFutureDate(p, i)}));
+    const fromStatic = staticProjects.map((p,i)=>({title:p.title||'Project', date: ensureFutureDate(p, i+fromLive.length)}));
+
+    const upcoming = [...fromLive, ...fromStatic]
+      .filter(x=>x.date && x.date > now)
+      .sort((a,b)=>a.date-b.date)
+      .slice(0,3);
+
+    if (!upcoming.length){
+      upcomingList.innerHTML = `<p class="text-sm text-gray-500">No upcoming items yet.</p>`;
+      return;
+    }
+
+    upcoming.forEach(x=>{
+      const day   = String(x.date.getDate());
+      const label = x.date.toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'});
+      upcomingList.insertAdjacentHTML('beforeend', `
+        <div class="flex items-start gap-3">
+          <div class="w-12 h-12 bg-green-100 rounded-lg grid place-content-center">
+            <span class="text-green-700 font-bold text-sm">${day}</span>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900 text-sm">${x.title}</h3>
+            <p class="text-xs text-gray-500">${label}</p>
+          </div>
+        </div>`);
+    });
+  }
+  renderUpcoming();
+
+  async function getTotalPoints(){
+    let total = 0;
+    try{
+      const { data: rows } = await supabase.from('module_completions').select('awarded_points').eq('user_id', session.user.id);
+      total += (rows||[]).reduce((a,b)=>a+(b.awarded_points||0),0);
+    }catch{}
+    try{
+      const { data: ip } = await supabase.from('impact_points').select('points').eq('user_id', session.user.id);
+      total += (ip||[]).reduce((a,b)=>a+(b.points||0),0);
+    }catch{}
+    return total;
+  }
+
+  async function getCompletedModulesCount(){
+    try{
+      const { data: rows } = await supabase.from('module_completions').select('module_id').eq('user_id', session.user.id);
+      const set = new Set((rows||[]).map(r => String(r.module_id)));
+      return set.size;
+    }catch{ return 0; }
+  }
+
+  async function renderLiveLeaderboard(){
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '<p class="text-sm text-gray-500">Loading…</p>';
+
+    let merged;
+    const { data: rows, error: rpcErr } = await supabase.rpc('leaderboard_top', { limit_n: 3 });
+    if (!rpcErr && rows?.length) {
+      merged = rows.map(r => ({ id: r.user_id, points: r.total_points || 0, profile: { full_name: r.full_name, username: r.username, avatar_url: r.avatar_url } }));
+      try {
+        const ids = merged.map(m => m.id);
+        if (ids.length){
+          const { data: mc } = await supabase.from('module_completions').select('user_id, awarded_points').in('user_id', ids);
+          const { data: ip } = await supabase.from('impact_points').select('user_id, points').in('user_id', ids);
+          const sums = new Map();
+          (mc || []).forEach(r => sums.set(r.user_id, (sums.get(r.user_id)||0) + (Number(r.awarded_points)||0)));
+          (ip || []).forEach(r => sums.set(r.user_id, (sums.get(r.user_id)||0) + (Number(r.points)||0)));
+          merged = merged.map(m => ({ ...m, points: (sums.has(m.id) ? sums.get(m.id) : (m.points||0)) }));
+        }
+      } catch {}
+    } else {
+      const { data: compRows } = await supabase.from('module_completions').select('user_id, awarded_points');
+      const totals = new Map();
+      (compRows || []).forEach(r => totals.set(r.user_id, (totals.get(r.user_id)||0) + (Number(r.awarded_points)||0)));
+      const { data: impactRows } = await supabase.from('impact_points').select('user_id, points');
+      (impactRows || []).forEach(r => totals.set(r.user_id, (totals.get(r.user_id)||0) + (Number(r.points)||0)));
+      const ids = [...totals.keys()];
+      let profs = [];
+      if (ids.length){
+        const { data: p } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', ids);
+        profs = p || [];
+      }
+      merged = ids.map(id => ({ id, points: totals.get(id) || 0, profile: (profs || []).find(p => p.id === id) || {} }));
+    }
+
+    async function safeAvatar(p) {
+      if (p?.avatar_url) {
+        if (/^https?:\/\//i.test(p.avatar_url)) return p.avatar_url;
+        const { data: pub } = supabase.storage.from('avatars').getPublicUrl(p.avatar_url);
+        if (pub?.publicUrl) return pub.publicUrl;
+        const { data: signed } = await supabase.storage.from('avatars').createSignedUrl(p.avatar_url, 86400);
+        if (signed?.signedUrl) return signed.signedUrl;
+      }
+      return letterAvatar((p?.full_name || p?.username || 'User'), 48);
+    }
+
+    merged = (merged || []).sort((a,b)=>b.points-a.points).slice(0, 3);
+    list.innerHTML = '';
+    for (let i = 0; i < merged.length; i++){
+      const m = merged[i];
+      const rank = i + 1;
+      const name = (m.profile.full_name?.trim()) || (m.profile.username?.trim()) || 'User';
+      const img = await safeAvatar(m.profile);
+      list.insertAdjacentHTML('beforeend', `
+        <div class="flex items-center space-x-3 ${m.id === session.user.id ? 'ring-2 ring-emerald-400 rounded-lg p-1' : ''}">
+          <div class="w-8 h-8 ${rank===1?'bg-yellow-400':rank===2?'bg-gray-400':rank===3?'bg-orange-400':'bg-gray-300'} rounded-full grid place-content-center">
+            <span class="text-white text-xs font-bold">${rank}</span>
+          </div>
+          <img src="${img}" class="w-8 h-8 rounded-full" alt="">
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">${m.id === session.user.id ? 'You ('+name+')' : name}</p>
+            <p class="text-xs text-gray-600">${(m.points||0).toLocaleString()} points</p>
+          </div>
+        </div>
+      `);
+    }
+  }
+
+  async function refreshCoreStats(){
+    const [points, modules] = await Promise.all([getTotalPoints(), getCompletedModulesCount()]);
+    window.__gcPoints  = points;
+    window.__gcModules = modules;
+
+    const pointsEl  = document.getElementById('stat-points');
+    const pointsDtl = document.getElementById('stat-points-detail');
+    if (pointsEl)  pointsEl.textContent  = String(points);
+    if (pointsDtl) pointsDtl.textContent = `Total across all learning • ${points.toLocaleString()} pts`;
+
+    const modEl  = document.getElementById('stat-modules');
+    const modDtl = document.getElementById('stat-modules-detail');
+    if (modEl)  modEl.textContent  = String(modules);
+    if (modDtl) modDtl.textContent = `Completed modules • ${modules}`;
+
+    refreshBadgeStats(points);
+  }
+
+  function currentBadge(points){
+    let level = 0, name = BADGE_STEPS[0].name, nextAt = BADGE_STEPS[1].at;
+    for (let i = 0; i < BADGE_STEPS.length; i++){
+      if (points >= BADGE_STEPS[i].at){
+        level = i; name = BADGE_STEPS[i].name;
+        nextAt = BADGE_STEPS[Math.min(i+1, BADGE_STEPS.length-1)].at;
+      } else break;
+    }
+    return { level, name, nextAt, maxed: points >= BADGE_STEPS[BADGE_STEPS.length-1].at };
+  }
+
+  function refreshBadgeStats(totalPoints){
+    const { level, name, nextAt, maxed } = currentBadge(totalPoints);
+    const count = level + 1;
+    const titleEl = document.getElementById('badge-title-large');
+    if (titleEl) titleEl.textContent = name;
+
+    const bEl  = document.getElementById('stat-badges');
+    const bDtl = document.getElementById('stat-badges-detail');
+    if (bEl)  bEl.textContent = String(count);
+    if (bDtl) bDtl.innerHTML = maxed
+      ? `Current: <span class="font-medium">${name}</span> • Top tier`
+      : `Current: <span class="font-medium">${name}</span> • Next at ${nextAt.toLocaleString()} pts`;
+  }
+
+  function openBadgeModal(totalPoints, modulesCount = (window.__gcModules||0)){
+    const { level, name, nextAt, maxed } = currentBadge(totalPoints);
+    const nextName = BADGE_STEPS[Math.min(level+1, BADGE_STEPS.length-1)].name;
+
+    const overlay = document.createElement('div');
+    overlay.className = "fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4";
+
+    const html = [
+      '<div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl">',
+        '<div class="flex items-center gap-4 mb-6">',
+          '<div class="w-16 h-16 bg-amber-100 rounded-2xl grid place-content-center text-3xl">🏅</div>',
+          '<div>',
+            '<h3 id="badge-title-large" class="text-3xl font-extrabold text-gray-900 leading-tight>'+name+'</h3>',
+            '<p class="text-sm text-gray-500">Level '+(level+1)+' / '+BADGE_STEPS.length+'</p>',
+          '</div>',
+        '</div>',
+        '<div class="mb-6">',
+          '<div class="flex items-center justify-between text-sm mb-2">',
+            '<span class="text-gray-600">Impact points</span>',
+            '<span class="font-semibold text-gray-900">'+ totalPoints.toLocaleString() +' pts</span>',
+          '</div>',
+          '<div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden"><div class="h-2 bg-emerald-500" style="width:'+ Math.min(100, (totalPoints/10000)*100) +'%"></div></div>',
+            '<p class="mt-2 text-xs text-gray-500">'+ (maxed ? "You\'ve reached the top tier — Net-Zero Master! 🎉" : 'Next badge <span class="font-medium">'+nextName+'</span> at <span class="font-medium">'+ nextAt.toLocaleString() +' pts</span>') +'</p>',
+          '<p class="mt-4 text-sm text-gray-600"><span class="font-medium">'+modulesCount+'</span> modules completed • <span class="font-medium">'+(level+1)+'</span> badges earned</p>',
+        '</div>',
+        '<div class="grid grid-cols-2 gap-3 text-sm">',
+          '<div class="p-3 rounded-xl bg-gray-50"><div class="text-gray-500">Current badge</div><div class="font-semibold text-gray-900">'+name+'</div></div>',
+          '<div class="p-3 rounded-xl bg-gray-50"><div class="text-gray-500">Next milestone</div><div class="font-semibold text-gray-900">'+(maxed ? "—" : nextAt.toLocaleString()+' pts')+'</div></div>',
+        '</div>',
+        '<div class="mt-8 text-right"><button class="px-5 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700" id="badge-modal-close">Close</button></div>',
+      '</div>'
+    ].join('');
+
+    overlay.innerHTML = html;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click',(e)=>{
+      if(e.target===overlay || e.target.id==='badge-modal-close') overlay.remove();
+    });
+  }
+
+  const badgesCard = document.getElementById('card-badges');
+  if (badgesCard){
+    badgesCard.addEventListener('click', ()=> openBadgeModal(window.__gcPoints || 0, window.__gcModules || 0));
+  }
+  const modulesCard = document.getElementById('stat-modules')?.closest('.dashboard-card');
+  if(modulesCard){
+    modulesCard.classList.add('clickable');
+    modulesCard.addEventListener('click', ()=> openBadgeModal(window.__gcPoints || 0, window.__gcModules || 0));
+  }
+
+  window.addEventListener('storage', async (e) => {
+    if (e.key === 'gc_points_refresh' && e.newValue === '1'){
+      await refreshCoreStats();
+      await renderLiveLeaderboard();
+      localStorage.removeItem('gc_points_refresh');
+    }
+  });
+
+  await refreshCoreStats();
+  await renderLiveLeaderboard();
+
+  document.querySelectorAll('.dashboard-card').forEach((card,i)=>{
+    anime({targets:card, translateY:[24,0], opacity:[0,1], duration:600, delay:i*80, easing:'easeOutQuad'});
+  });
+</script>
+<footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center"><span class="text-white font-bold text-lg">🌱</span></div>
+            <span class="display-font text-2xl font-bold">GreenCell</span>
+          </div>
+          <p class="text-gray-400 leading-relaxed">Empowering youth worldwide to create sustainable solutions and drive environmental change.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Platform</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="dashboard.html" class="hover:text-green-400 transition-colors">Dashboard</a></li>
+            <li><a href="innovation-lab.html" class="hover:text-green-400 transition-colors">Innovation Lab</a></li>
+            <li><a href="learning-hub.html" class="hover:text-green-400 transition-colors">Learning Hub</a></li>
+            <li><a href="events.html" class="hover:text-green-400 transition-colors">Events</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Resources</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="#" class="hover:text-green-400 transition-colors">SDG Guide</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Project Templates</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Best Practices</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Impact Reports</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Connect</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="contact.html" class="hover:text-green-400 transition-colors">Contact Us</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Community Forum</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Newsletter</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Social Media</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <p>&copy; 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
+

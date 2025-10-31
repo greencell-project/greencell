@@ -1,0 +1,483 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings - GreenCell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .display-font{font-family:"Playfair Display",serif}
+    .nav-link{position:relative;transition:.3s}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:#10B981;transition:width .3s ease}
+    .nav-link:hover::after{width:100%}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-white">
+  <!-- Top nav -->
+  <nav id="gc-nav" class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-white"></div>
+        <span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a class="nav-link font-medium text-gray-700 hover:text-green-600" href="index.html">Home</a>
+        <a class="nav-link font-medium text-gray-700 hover:text-green-600" href="dashboard.html">Dashboard</a>
+        <a class="nav-link font-medium text-gray-700 hover:text-green-600" href="innovation-lab.html">Innovation Lab</a>
+        <a class="nav-link font-medium text-gray-700 hover:text-green-600" href="learning-hub.html">Learning Hub</a>
+        <a class="nav-link font-medium text-gray-700 hover:text-green-600" href="events.html">Events</a>
+        <a class="nav-link font-medium text-gray-700 hover:text-green-600" href="contact.html">Contact</a>
+      </div>
+      <div class="flex items-center gap-3" data-gc-nav-right>
+        <button data-logout class="bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700">Log out</button>
+      </div>
+    </div>
+  </nav>
+  <div style="height:64px"></div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <h1 class="display-font text-3xl font-bold text-gray-900 mb-1">Settings</h1>
+    <p class="text-gray-600 mb-6">Update your profile, account email & password, and avatar.</p>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Avatar & quick actions -->
+      <section class="bg-white/90 backdrop-blur rounded-2xl border border-gray-200 p-5">
+        <div class="flex items-center gap-3 mb-3">
+          <img data-avatar-preview class="w-20 h-20 rounded-full object-cover border border-gray-200" alt="Avatar">
+          <span data-role-badge class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Student</span>
+        </div>
+
+        <div class="space-y-3">
+          <label class="block">
+            <span class="block text-sm font-medium text-gray-700 mb-1">Change profile picture</span>
+            <input id="file" type="file" accept="image/*" class="block w-full text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border file:border-gray-300 file:bg-white hover:file:bg-gray-50">
+          </label>
+
+          <div class="flex gap-2">
+            <button id="use-letter" class="px-3 py-1.5 rounded-lg border border-gray-300 text-sm hover:bg-gray-50">Use letter avatar</button>
+            <button id="remove-avatar" class="px-3 py-1.5 rounded-lg border border-red-300 text-sm text-red-700 hover:bg-red-50">Remove avatar</button>
+          </div>
+
+          <p id="profile-msg" class="text-sm text-gray-600"></p>
+
+          <a href="dashboard.html" class="inline-flex items-center gap-1 text-sm text-green-700 hover:underline mt-2">? Back to Dashboard</a>
+        </div>
+      </section>
+
+      <!-- Profile form -->
+      <section class="md:col-span-2 bg-white/90 backdrop-blur rounded-2xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-900 mb-4">Profile</h2>
+        <form id="profile-form" class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Username</label>
+            <input id="username" type="text" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" placeholder="e.g. adit"
+                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Full name</label>
+            <input id="full_name" type="text" placeholder="e.g. Emma Chen"
+                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">School</label>
+            <input id="school_name" type="text" placeholder="Your school"
+                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Role</label>
+            <input id="role" type="text" disabled
+                   class="w-full border rounded-lg px-3 py-2 bg-gray-50">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-700 mb-1">Bio</label>
+            <textarea id="bio" rows="3" placeholder="Tell us a little about yourself"
+                      class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+          </div>
+          <div class="md:col-span-2 flex items-center gap-3">
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" type="submit">Save profile</button>
+            <span id="profile-msg-inline" class="text-sm text-gray-600"></span>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Account forms -->
+    <div class="grid md:grid-cols-2 gap-6 mt-6">
+      <section class="bg-white/90 backdrop-blur rounded-2xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-900 mb-4">Update email</h2>
+        <form id="email-form" class="space-y-3">
+          <label class="block">
+            <span class="block text-sm text-gray-700 mb-1">Email</span>
+            <input id="email" type="email" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </label>
+          <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" type="submit">Save email</button>
+          <span id="email-msg" class="text-sm text-gray-600 ml-2"></span>
+        </form>
+      </section>
+
+      <section class="bg-white/90 backdrop-blur rounded-2xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-900 mb-4">Change password</h2>
+        <div id="pwd-banner" class="hidden mb-3 text-sm px-3 py-2 rounded border border-amber-300 bg-amber-50 text-amber-800">
+          You haven’t created a password yet – set one now so you can log in without OAuth next time.
+        </div>
+        <form id="password-form" class="space-y-3">
+          <label class="block">
+            <span class="block text-sm text-gray-700 mb-1">Current password</span>
+            <input id="cur-pwd" type="password" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </label>
+          <label class="block">
+            <span class="block text-sm text-gray-700 mb-1">New password</span>
+            <input id="new-pwd" type="password" minlength="6" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </label>
+          <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" type="submit">Save password</button>
+          <span id="pwd-msg" class="text-sm text-gray-600 ml-2"></span>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <!-- SETTINGS LOGIC -->
+  <script>var supabase = window.__supabase || (window.__supabase = window.supabase.createClient("https://zjxxmppahgpxoltdsfaq.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo"));
+
+    // Element map
+    const els = {
+      avatarPreview: document.querySelector("[data-avatar-preview]"),
+      roleBadge: document.querySelector("[data-role-badge]"),
+      file: document.getElementById("file"),
+      useLetterBtn: document.getElementById("use-letter"),
+      removeAvatarBtn: document.getElementById("remove-avatar"),
+      logoutBtn: document.querySelector("[data-logout]"),
+      // profile
+      profileForm: document.getElementById("profile-form"),
+      fUsername: document.getElementById("username"),
+      fFullname: document.getElementById("full_name"),
+      fSchool: document.getElementById("school_name"),
+      fRole: document.getElementById("role"),
+      fBio: document.getElementById("bio"),
+      profileMsg: document.getElementById("profile-msg"),
+      profileMsgInline: document.getElementById("profile-msg-inline"),
+      // email
+      emailForm: document.getElementById("email-form"),
+      fEmail: document.getElementById("email"),
+      emailMsg: document.getElementById("email-msg"),
+      // password
+      passwordForm: document.getElementById("password-form"),
+      curPwd: document.getElementById("cur-pwd"),
+      newPwd: document.getElementById("new-pwd"),
+      pwdMsg: document.getElementById("pwd-msg"),
+      pwdBanner: document.getElementById("pwd-banner")
+    };
+
+    // Helpers
+
+  // --- Username availability helpers ---
+  async function isUsernameAvailable(name){
+    if(!name) return true;
+    // Case-insensitive check; exclude current user
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('username', name)
+      .neq('id', user.id)
+      .limit(1);
+    if (error) throw error;
+    return !(data && data.length);
+  }
+
+  function suggestUsernames(base){
+    base = (base||'user').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0,15) || 'user';
+    const t = (Date.now() % 1000).toString().padStart(3,'0');
+    const r = Math.floor(Math.random()*900+100).toString();
+    return [base, base + t, base + '_' + r].filter((v,i,a)=>a.indexOf(v)===i);
+  }
+
+  function setFieldError(inputEl, hasError){
+    if(!inputEl) return;
+    inputEl.classList.toggle('ring-2', !!hasError);
+    inputEl.classList.toggle('ring-red-400', !!hasError);
+    inputEl.classList.toggle('ring-offset-1', !!hasError);
+  }
+
+    function colorFrom(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return 'hsl(' + (h % 360) + ' 70% 55%)'; }
+    function letterAvatarDataURL(name,size=256){
+      const c=document.createElement("canvas"); c.width=c.height=size;
+      const ctx=c.getContext("2d");
+      ctx.fillStyle=colorFrom(name||"U"); ctx.fillRect(0,0,size,size);
+      ctx.fillStyle="#fff"; ctx.font = (Math.floor(size*0.55) + 'px Inter, Arial');
+      ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText((name||"U")[0].toUpperCase(), size/2, size/2);
+      return c.toDataURL("image/png");
+    }
+    function setMsg(node, text, tone="ok"){
+      const cls = tone==="ok" ? "text-green-700" : tone==="err" ? "text-red-600" : "text-gray-600";
+      node.className = 'text-sm ' + cls;
+      node.textContent = text;
+    }
+
+    let session, user, profile;
+
+    async function requireSession(){
+      const { data: s } = await supabase.auth.getSession();
+      if (!s.session){ location.href = "login.html?returnTo=settings.html"; return; }
+      session = s.session; user = session.user;
+    }
+
+    // ?? Prefer FULL NAME (then username, then email) for display/letter avatar
+    function displayNameFrom(p, u){
+      return (p.full_name && p.full_name.trim())
+          || (p.username && p.username.trim())
+          || ((u.email && u.email.split("@")[0]) || "User");
+    }
+
+    async function resolveAvatarUrl(p){
+      // 1) if stored is full http(s) url, use it
+      const raw = (p.avatar_url || "").trim();
+      if (raw && /^https?:\/\//i.test(raw)) return raw;
+
+      // 2) if we have a storage path like "avatars/<uid>/file.png"
+      if (raw){
+        // first try public URL
+        const { data: pub } = supabase.storage.from("avatars").getPublicUrl(raw);
+        if (pub.publicUrl) return pub.publicUrl;
+        // fallback signed URL (1 year)
+        const { data: signed } = await supabase.storage.from("avatars").createSignedUrl(raw, 60*60*24*365);
+        if (signed.signedUrl) return signed.signedUrl;
+      }
+
+      // 3) fallback letter avatar (FULL NAME first)
+      const name = displayNameFrom(p, user);
+      return letterAvatarDataURL(name, 256);
+    }
+
+    async function loadProfile(){
+      // get profile
+      const { data: p } = await supabase.from("profiles")
+        .select("username, full_name, role, school_name, bio, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      profile = p || {};
+
+      // fill fields
+      els.fUsername.value = profile.username || "";
+      els.fFullname.value = profile.full_name || "";
+      els.fSchool.value   = profile.school_name || "";
+      els.fRole.value     = ((profile.role || "student")+"").replace(/^./, c=>c.toUpperCase());
+      els.fBio.value      = profile.bio || "";
+      els.fEmail.value    = user.email || "";
+      els.roleBadge.textContent = els.fRole.value;
+
+      // avatar
+      const url = await resolveAvatarUrl(profile);
+      els.avatarPreview.src = url;
+      els.avatarPreview.alt = "Avatar";
+    }
+
+    async function init(){
+      await requireSession();
+      await ensureProfileRow();
+      await loadProfile();
+      // --- new: keep email field always populated ---
+      els.fEmail.value = user.email || "";
+      // --- new: banner if no password exists ---
+      const { data: methods } = await supabase.auth.getUserIdentities();
+      const hasPassword = methods.identities && methods.identities.some(i => i.provider === 'email');
+      if (!hasPassword) els.pwdBanner.classList.remove('hidden');
+    }
+    async function ensureProfileRow(){
+      const { data: p } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+      if (!p){ try{ await supabase.from('profiles').insert({ id: user.id, role:'student' }); }catch(e){} }
+    }
+
+    // Upload new avatar
+    els.file.addEventListener("change", async () => {
+      const file = els.file.files[0];
+      if (!file) return;
+      const safeName = file.name.replace(/[^A-Za-z0-9._-]/g, "_");
+      const path = `${user.id}/${Date.now()}_${safeName}`;
+
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+        contentType: file.type,
+        upsert: true
+      });
+      if (upErr){ setMsg(els.profileMsg, upErr.message, "err"); return; }
+
+      // save path in profile (safer than long signed url)
+      const { error: upProfile } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user.id);
+      if (upProfile){ setMsg(els.profileMsg, upProfile.message, "err"); return; }
+
+      // refresh preview from storage
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = pub.publicUrl || (await supabase.storage.from("avatars").createSignedUrl(path, 60*60*24*365)).data.signedUrl;
+      if (url) els.avatarPreview.src = url;
+      setMsg(els.profileMsg, "Avatar updated.", "ok");
+    });
+
+    // Use letter avatar (and store null)
+    els.useLetterBtn.addEventListener("click", async () => {
+      const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+      if (error){ setMsg(els.profileMsg, error.message, "err"); return; }
+      const url = letterAvatarDataURL(displayNameFrom(profile, user), 256);
+      els.avatarPreview.src = url;
+      profile.avatar_url = null;
+      setMsg(els.profileMsg, "Using letter avatar.", "ok");
+    });
+
+    // Remove avatar (clear field)
+    els.removeAvatarBtn.addEventListener("click", async () => {
+      const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+      if (error){ setMsg(els.profileMsg, error.message, "err"); return; }
+      const url = letterAvatarDataURL(displayNameFrom(profile, user), 256);
+      els.avatarPreview.src = url;
+      profile.avatar_url = null;
+      setMsg(els.profileMsg, "Avatar removed.", "ok");
+    });
+
+    // Save profile (persist + keep values)
+    els.profileForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        username: els.fUsername.value.trim() || null,
+        full_name: els.fFullname.value.trim() || null,
+        school_name: els.fSchool.value.trim() || null,
+        bio: els.fBio.value.trim() || null
+      };
+      const { error } = await supabase.from("profiles").upsert({ id: user.id, ...payload });
+      if (error){
+        if (/uq_profiles_username_ci/i.test(error.message) || /duplicate key.*username/i.test(error.message)){
+          const uname = (els.fUsername.value||'').trim();
+          const suggestions = suggestUsernames(uname);
+          setMsg(els.profileMsgInline, `Username "${uname}" is taken. Try: ${suggestions.join(', ')}`, 'err');
+          setFieldError(els.fUsername, true);
+        } else {
+          setMsg(els.profileMsgInline, error.message, 'err');
+        }
+        return; }
+      profile = Object.assign({}, profile||{}, payload);
+      await loadProfile();
+      setMsg(els.profileMsgInline, "Profile saved.", "ok");
+    });
+
+    // Update email
+    els.emailForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = els.fEmail.value.trim();
+      const { data, error } = await supabase.auth.updateUser({ email });
+      if (error){ setMsg(els.emailMsg, error.message, "err"); return; }
+      setMsg(els.emailMsg, "If required, a confirmation email has been sent. Please check your inbox.", "ok");
+    });
+
+    // Update password (verify current first)
+    els.passwordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const cur = els.curPwd.value;
+      const nxt = els.newPwd.value;
+      if(!cur || !nxt || nxt.length < 6){
+        setMsg(els.pwdMsg, "Enter current password and a new password (min 6 chars).", "err");
+        return;
+      }
+      // reauthenticate using signInWithPassword
+      const { error: reErr } = await supabase.auth.signInWithPassword({ email: user.email, password: cur });
+      if (reErr){ setMsg(els.pwdMsg, "Current password is incorrect.", "err"); return; }
+      const { error } = await supabase.auth.updateUser({ password: nxt });
+      if (error){ setMsg(els.pwdMsg, error.message, "err"); return; }
+      els.curPwd.value = ""; els.newPwd.value = "";
+      setMsg(els.pwdMsg, "Password updated.", "ok");
+    });
+
+    // Logout
+    els.logoutBtn.addEventListener("click", async () => {
+      try {
+        // Prefer a single global client if present
+        if (window.__supabase?.auth?.signOut) {
+          await window.__supabase.auth.signOut();
+        } else {
+          await supabase.auth.signOut();
+        }
+      } finally {
+        location.href = "login.html";
+      }
+    });
+
+    // Go
+    init();
+  </script>
+
+<!-- Injected: navbar user avatar + name + (optional) session guard -->
+<script>var supabase = window.__supabase || (window.__supabase = window.supabase.createClient("https://zjxxmppahgpxoltdsfaq.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo"));
+  function colorFrom(s){ let h=0; for(let i=0;i<(s||'U').length;i++) h=(h*31+s.charCodeAt(i))>>>0; return 'hsl(' + (h % 360) + ' 70% 55%)'; }
+  function letterAvatarDataURL(name,size=64){
+    const c=document.createElement('canvas'); c.width=c.height=size;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle=colorFrom(name||'U'); ctx.fillRect(0,0,size,size);
+    ctx.fillStyle='#fff'; ctx.font = (Math.floor(size*0.55) + 'px Inter, Arial'); ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText((name||'U')[0].toUpperCase(), size/2, size/2);
+    return c.toDataURL('image/png');
+  }
+  async function resolveAvatarUrl(profile, user){
+    const raw = (profile.avatar_url || '').trim();
+    if (raw && /^https?:\/\//i.test(raw)) return raw;
+    if (raw){
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(raw);
+      if (pub.publicUrl) return pub.publicUrl;
+      const { data: signed } = await supabase.storage.from('avatars').createSignedUrl(raw, 60*60*24*365);
+      if (signed.signedUrl) return signed.signedUrl;
+    }
+    // ?? Prefer FULL NAME here too
+    const display = (profile.full_name && profile.full_name.trim())
+                 || (profile.username && profile.username.trim())
+                 || ((user.email && user.email.split('@')[0]) || 'U');
+    return letterAvatarDataURL(display, 64);
+  }
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const user = session.user;
+    const { data: profile } = await supabase.from('profiles')
+      .select('username, full_name, avatar_url, role').eq('id', user.id).maybeSingle();
+    // ?? Full name first for navbar display text
+    const name = (profile?.full_name && profile.full_name.trim())
+              || (profile?.username && profile.username.trim())
+              || ((user.email && user.email.split('@')[0]) || 'User');
+    const url = await resolveAvatarUrl(profile||{}, user);
+    const nav = document.querySelector('nav');
+    if (!nav) return;
+    const host = nav.querySelector('.max-w-7xl, .max-w-6xl, .container') || nav;
+    let right = host.querySelector('[data-gc-nav-right]');
+    if (!right){
+      const topDivs = Array.from(host.children).filter(n => n.tagName === 'DIV');
+      right = topDivs[topDivs.length-1] || host;
+      right.setAttribute('data-gc-nav-right','');
+    }
+    let capsule = right.querySelector('[data-gc-user]');
+    if (!capsule){
+      capsule = document.createElement('a');
+      capsule.href = 'settings.html';
+      capsule.setAttribute('data-gc-user','');
+      capsule.className = 'flex items-center gap-2 ml-3';
+      capsule.innerHTML = '<img data-user-avatar class="w-8 h-8 rounded-full object-cover border border-gray-200" alt="Me">\n                           <div class="leading-tight">\n                             <div data-user-name class="text-sm font-medium text-gray-800"></div>\n                             <div data-user-role class="text-[11px] text-gray-500"></div>\n                           </div>';
+      right.appendChild(capsule);
+    }
+    capsule.querySelector('[data-user-avatar]').src = url;
+    capsule.querySelector('[data-user-name]').textContent = name;
+    capsule.querySelector('[data-user-role]').textContent = (profile?.role || 'user');
+  })();
+</script>
+<script src="js/emoji-fix.js"></script>
+
+  
+</body></html>
+
+
+
+
+

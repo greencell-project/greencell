@@ -1,0 +1,1114 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Innovation Lab — GreenCell</title>
+
+  <!-- Tailwind + Anime -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--primary-green:#2D5A27;--success-green:#10B981;}
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#f0f9f0 0%,#ffffff 100%);background-attachment:fixed}
+    .display-font{font-family:'Playfair Display',serif}
+    .nav-link{position:relative;transition:.3s}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--success-green);transition:width .3s ease}
+    .nav-link:hover::after{width:100%}
+    .project-card{transition:.3s;backdrop-filter:blur(10px)}
+    .project-card:hover{transform:translateY(-4px);box-shadow:0 15px 30px rgba(0,0,0,.1)}
+    .filter-btn{transition:.3s}
+    .filter-btn.active{background:var(--primary-green);color:#fff}
+    .filter-btn:not(.active):hover{background:rgba(45,90,39,.1)}
+    .form-step{display:none}
+    .form-step.active{display:block;animation:fadeInUp .4s ease}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .detail-hero{background:linear-gradient(135deg,rgba(45,90,39,.06),rgba(255,255,255,1)); border:1px solid #e5e7eb}
+    .stat{border:1px solid #e5e7eb}
+    .sdg-1 {background:#E5243B;color:#fff;border-color:#E5243B}
+    .sdg-2 {background:#DDA63A;color:#fff;border-color:#DDA63A}
+    .sdg-3 {background:#4C9F38;color:#fff;border-color:#4C9F38}
+    .sdg-4 {background:#C5192D;color:#fff;border-color:#C5192D}
+    .sdg-5 {background:#FF3A21;color:#fff;border-color:#FF3A21}
+    .sdg-6 {background:#26BDE2;color:#fff;border-color:#26BDE2}
+    .sdg-7 {background:#FCC30B;color:#111;border-color:#FCC30B}
+    .sdg-8 {background:#A21942;color:#fff;border-color:#A21942}
+    .sdg-9 {background:#FD6925;color:#111;border-color:#FD6925}
+    .sdg-10{background:#DD1367;color:#fff;border-color:#DD1367}
+    .sdg-11{background:#FD9D24;color:#111;border-color:#FD9D24}
+    .sdg-12{background:#BF8B2E;color:#fff;border-color:#BF8B2E}
+    .sdg-13{background:#3F7E44;color:#fff;border-color:#3F7E44}
+    .sdg-14{background:#0A97D9;color:#fff;border-color:#0A97D9}
+    .sdg-15{background:#56C02B;color:#111;border-color:#56C02B}
+    .sdg-16{background:#00689D;color:#fff;border-color:#00689D}
+    .sdg-17{background:#19486A;color:#fff;border-color:#19486A}
+    .sdg-pill{display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .55rem;border:1px solid transparent;border-radius:.65rem;font-size:.75rem;font-weight:600;line-height:1}
+    .sdg-tag{transition:.2s}
+    .sdg-tag.selected{transform:scale(1.04)}
+  </style>
+</head>
+
+<body>
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16 relative pr-40 md:pr-48">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center">
+          <span class="text-white font-bold text-lg">ðŸŒ±</span>
+        </div>
+        <span class="display-font text-2xl font-bold text-gray-900">GreenCell</span>
+      </div>
+
+      <div class="hidden md:flex items-center gap-8">
+        <a href="index.html"       class="nav-link text-gray-700 hover:text-green-600 font-medium">Home</a>
+        <a href="dashboard.html"   class="nav-link text-gray-700 hover:text-green-600 font-medium">Dashboard</a>
+        <a href="innovation-lab.html" class="nav-link text-green-600 font-medium">Innovation Lab</a>
+        <a href="learning-hub.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Learning Hub</a>
+        <a href="events.html"      class="nav-link text-gray-700 hover:text-green-600 font-medium">Events</a>
+        <a href="contact.html"     class="nav-link text-gray-700 hover:text-green-600 font-medium">Contact</a>
+      </div>
+
+            <div class="flex items-center gap-3">
+        <div class="relative group" id="gc-avatar-wrap">
+          <img id="gc-avatar" data-user-avatar src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" />
+          <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden group-hover:block z-50 gc-avatar-menu">
+            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Account Settings</a>
+            <button type="button" data-gc-logout class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+          </div>
+        </div>
+        <div class="leading-tight">
+          <div id="gc-name" data-user-name class="text-sm font-medium text-gray-700">-</div>
+          <div id="gc-role" data-user-role class="text-[11px] text-gray-500">-</div>
+        </div>
+      </div>
+      <button class="hidden md:inline-flex items-center bg-green-600 text-white px-6 py-2 rounded-full font-medium hover:bg-green-700 absolute right-0" onclick="openProjectModal()">Create Project</button>
+    </div>
+  </div>
+</nav>
+
+<!-- avatar-dropdown-delay -->
+<script>
+  (function(){
+    var wrap = document.getElementById("gc-avatar-wrap");
+    if (!wrap) return;
+    var panel = wrap.querySelector(".gc-avatar-menu");
+    var img   = wrap.querySelector("#gc-avatar");
+    if (!panel) return;
+    var hideTimer;
+    function show(){ if(hideTimer){ clearTimeout(hideTimer); hideTimer=null; } panel.classList.remove("hidden"); }
+    function scheduleHide(){ if(hideTimer) clearTimeout(hideTimer); hideTimer = setTimeout(function(){ panel.classList.add("hidden"); }, 250); }
+    wrap.addEventListener("mouseenter", show);
+    wrap.addEventListener("mouseleave", scheduleHide);
+    if (img) img.addEventListener("click", function(e){ e.preventDefault(); e.stopPropagation(); if(panel.classList.contains("hidden")) show(); else panel.classList.add("hidden"); });
+    panel.addEventListener("mouseenter", show);
+    panel.addEventListener("mouseleave", scheduleHide);
+    document.addEventListener("click", function(){ panel.classList.add("hidden"); });
+  })();
+</script>
+<!-- Admin-only small reset button (top-right, out of the navbar) -->
+<button id="btn-reset-project-points" title="Reset project impact points"
+        class="hidden fixed top-20 right-4 z-40 px-3 py-1.5 rounded-full text-xs font-medium bg-red-600 text-white border border-red-700 shadow hover:bg-red-700">
+  Reset Project Points
+</button>
+
+<div class="pt-16 min-h-screen">
+  <section id="grid-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="display-font text-4xl font-bold text-gray-900 mb-2">Innovation Lab ðŸ”¬</h1>
+      <p class="text-xl text-gray-600">Create, collaborate, and manage your sustainability projects</p>
+    </div>
+
+    <div class="mb-8">
+      <div class="flex flex-wrap gap-3">
+        <button class="filter-btn active px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="all">All Projects</button>
+        <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="in-progress">In Progress</button>
+        <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="completed">Completed</button>
+        <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="planning">Planning</button>
+        <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="my-projects">My Projects</button>
+      </div>
+    </div>
+
+    <div id="projects-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- (static demo cards left intact) -->
+      <a href="innovation-lab.html?slug=campus-recycling-revolution" class="project-card bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden border border-gray-100 block" data-status="in-progress">
+        <img src="resources/recycling-project.jpg" alt="Recycling Project" class="w-full h-48 object-cover">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">SDG 12 & 13</span>
+            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">In Progress</span>
+          </div>
+          <h3 class="display-font text-xl font-bold text-gray-900 mb-2">Campus Recycling Revolution</h3>
+          <p class="text-gray-600 text-sm mb-4">Comprehensive recycling program implementing waste sorting, workshops, and challenges to reduce campus waste by 60%.</p>
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span>â™»ï¸ 75% complete</span>
+            <span>â± 2 weeks left</span>
+          </div>
+        </div>
+      </a>
+      <a href="innovation-lab.html?slug=solar-learning-lab" class="project-card bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden border border-gray-100 block" data-status="completed">
+        <img src="resources/renewable-energy.jpg" alt="Solar Learning Lab" class="w-full h-48 object-cover">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">SDG 7 & 9</span>
+            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Completed</span>
+          </div>
+          <h3 class="display-font text-xl font-bold text-gray-900 mb-2">Solar Learning Lab</h3>
+          <p class="text-gray-600 text-sm mb-4">Hands-on renewable energy education program where students build a solar array and monitor output via IoT.</p>
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span>â˜€ï¸ 100% complete</span>
+            <span>ðŸ† 200 pts</span>
+          </div>
+        </div>
+      </a>
+      <a href="innovation-lab.html?slug=urban-food-forest" class="project-card bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden border border-gray-100 block" data-status="planning">
+        <img src="resources/community-garden.jpg" alt="Urban Food Forest" class="w-full h-48 object-cover">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">SDG 2 & 15</span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">Planning</span>
+          </div>
+          <h3 class="display-font text-xl font-bold text-gray-900 mb-2">Urban Food Forest</h3>
+          <p class="text-gray-600 text-sm mb-4">Permaculture-based garden enhancing biodiversity and food security while teaching organic farming.</p>
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span>ðŸŒ± 25% planned</span>
+            <span>ðŸ“… Starts next month</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section id="detail-section" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+    <a href="innovation-lab.html" class="text-green-700 hover:underline mb-6 inline-block">&larr; Back to Projects</a>
+
+    <div class="detail-hero rounded-3xl p-6 md:p-10 mb-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="flex-1">
+          <h1 id="d-title" class="display-font text-3xl md:text-4xl font-bold text-gray-900 mb-2">Project</h1>
+          <p id="d-summary" class="text-gray-700 max-w-3xl">Summary</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="d-badge" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-800">Status</span>
+          <span id="d-sdg" class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">SDG</span>
+          <span id="d-points" class="px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">ðŸ† 0 pts</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="approval-banner" class="hidden mb-6 p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-800">
+      <div class="font-semibold mb-0.5">Awaiting admin approval</div>
+      <div class="text-sm">This project will award impact points to volunteers after an admin approves it.</div>
+    </div>
+
+    <!-- Admin tools: ONLY button color classes changed below -->
+    <div id="admin-approve-bar" class="hidden mb-6 p-4 rounded-xl border bg-white flex items-center justify-between">
+      <div>
+        <div class="font-semibold text-gray-900">Admin tools</div>
+        <p id="admin-approve-hint" class="text-sm text-gray-600">Visible to admins only.</p>
+      </div>
+      <div class="flex gap-2">
+        <!-- CHANGED TO EMERALD -->
+        <button id="btn-publish-project"
+                class="px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          ðŸ“£ Publish (Approve Early)
+        </button>
+        <!-- DARKER EMERALD FOR FINAL ACTION -->
+        <button id="btn-finalize-award"
+                class="px-4 py-2 rounded-lg bg-emerald-700 text-white font-medium hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed">
+          âœ… Finalize & Award Points
+        </button>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+      <div class="stat rounded-2xl p-5 bg-white">
+        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Timeline</div>
+        <div id="d-timeline" class="text-gray-900 font-medium">â€“</div>
+      </div>
+      <div class="stat rounded-2xl p-5 bg-white">
+        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Location</div>
+        <div id="d-location" class="text-gray-900 font-medium">â€“</div>
+      </div>
+      <div class="stat rounded-2xl p-5 bg-white">
+        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Budget</div>
+        <div id="d-budget" class="text-gray-900 font-medium">â€“</div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="md:col-span-2 space-y-8">
+        <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <h2 class="display-font text-2xl font-bold text-gray-900 mb-3">About this project</h2>
+          <p id="d-description" class="text-gray-700"></p>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <h2 class="display-font text-2xl font-bold text-gray-900 mb-3">Expected Impact</h2>
+          <p id="d-impact" class="text-gray-700"></p>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <!-- CHANGED TO EMERALD -->
+          <button id="open-volunteer" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700">
+            ?? Volunteer for this Project
+          </button>
+          <div id="volunteered-pill" class="hidden mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
+            ? You volunteered
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-8">
+        <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <h3 class="display-font text-xl font-bold text-gray-900 mb-3">Team</h3>
+          <ul id="d-team" class="space-y-2 text-gray-700 text-sm"><li>You (Leader)</li></ul>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <h3 class="display-font text-xl font-bold text-gray-900 mb-3">Gallery</h3>
+          <div id="d-gallery" class="grid grid-cols-2 gap-3">
+            <img src="resources/renewable-energy.jpg" class="rounded-lg object-cover w-full h-28" alt="">
+            <img src="resources/community-garden.jpg" class="rounded-lg object-cover w-full h-28" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="vol-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeVolModal()"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-900">Volunteer</h3>
+        <button class="text-2xl text-gray-500 hover:text-gray-700" onclick="closeVolModal()">Ã—</button>
+      </div>
+      <form id="vol-form" class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">Your name</label>
+          <input name="name" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">Email</label>
+          <input name="email" type="email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">Phone</label>
+          <input name="phone" type="tel" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">Message</label>
+          <textarea name="message" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+        </div>
+        <button class="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700">Volunteer</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="project-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeProjectModal()"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white/90 backdrop-blur-md border-b border-gray-200 rounded-t-3xl px-8 py-6">
+        <div class="flex items-center justify-between">
+          <h2 class="display-font text-3xl font-bold text-gray-900">Create New Project</h2>
+          <button onclick="closeProjectModal()" class="text-gray-500 hover:text-gray-700 text-2xl">Ã—</button>
+        </div>
+        <div class="flex items-center space-x-4 mt-6">
+          <div class="step-indicator active w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</div><div class="flex-1 h-1 bg-Gray-200 rounded"></div>
+          <div class="step-indicator w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-500">2</div><div class="flex-1 h-1 bg-gray-200 rounded"></div>
+          <div class="step-indicator w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-500">3</div><div class="flex-1 h-1 bg-gray-200 rounded"></div>
+          <div class="step-indicator w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-500">4</div>
+        </div>
+      </div>
+      <div class="p-8">
+        <form id="project-form">
+          <div class="form-step active" id="step-1">
+            <h3 class="display-font text-2xl font-bold text-gray-900 mb-6">Project Overview</h3>
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Project Title</label>
+                <input type="text" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Enter your project title" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Project Summary</label>
+                <textarea name="summary" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" rows="3" placeholder="Brief description of your project" required></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-step" id="step-2">
+            <h3 class="display-font text-2xl font-bold text-gray-900 mb-6">Team & Timeline</h3>
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                <input type="text" name="location" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="School name or location">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Project Duration</label>
+                <div class="grid grid-cols-2 gap-4">
+                  <input type="date" name="start-date" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                  <input type="date" name="end-date" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Team (comma separated)</label>
+                <input type="text" name="team" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="You (Leader), Alex Park, Maya Patel">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-step" id="step-3">
+            <h3 class="display-font text-2xl font-bold text-gray-900 mb-6">Details, Impact & SDGs</h3>
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Detailed Description</label>
+                <textarea name="detail-desc" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" rows="4" placeholder="Detailed project description, methodology, and implementation plan"></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Expected Impact</label>
+                <textarea name="impact" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" rows="3" placeholder="Describe the measurable impact your project will have"></textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Budget (USD)</label>
+                  <input type="number" name="budget" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="0" min="0">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Points Worth</label>
+                  <input type="number" name="points_worth" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="e.g. 200" min="0">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Sustainable Development Goals (select all that apply)</label>
+                <div id="sdg-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+                <input type="hidden" name="sdg" id="sdg-hidden">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-step" id="step-4">
+            <h3 class="display-font text-2xl font-bold text-gray-900 mb-6">Review & Submit</h3>
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+              <h4 class="font-semibold text-gray-900 mb-4">Project Summary</h4>
+              <div class="space-y-3 text-sm text-gray-600">
+                <div><strong>Title:</strong> <span id="review-title">-</span></div>
+                <div><strong>Summary:</strong> <span id="review-summary">-</span></div>
+                <div><strong>Location:</strong> <span id="review-location">-</span></div>
+                <div><strong>Duration:</strong> <span id="review-duration">-</span></div>
+                <div><strong>Budget:</strong> <span id="review-budget">-</span></div>
+                <div><strong>Team:</strong> <span id="review-team">-</span></div>
+                <div><strong>SDGs:</strong> <span id="review-sdgs">-</span></div>
+                <div><strong>Points Worth:</strong> <span id="review-points">-</span></div>
+              </div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-6">
+              <h4 class="font-semibold text-blue-900 mb-2">ðŸ“‹ What happens next?</h4>
+              <ul class="text-sm text-blue-800 space-y-1">
+                <li>• Your project will be reviewed by an admin</li>
+                <li>• Once approved, volunteers receive the project's impact points</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex justify-between mt-8">
+            <button type="button" id="prev-btn" class="px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50" style="display:none;">Previous</button>
+            <div class="flex-1"></div>
+            <button type="button" id="next-btn" class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">Next</button>
+            <button type="submit" id="submit-btn" class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700" style="display:none;">Create Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+function toast(msg,type='success'){
+  const el=document.createElement('div');
+  el.className=`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow text-white ${type==='error'?'bg-red-600':type==='info'?'bg-blue-600':'bg-emerald-600'}`;
+  el.textContent=msg;
+  document.body.appendChild(el); setTimeout(()=>el.remove(),2500);
+}
+function closeProjectModal(){ $('project-modal').classList.add('hidden'); document.body.style.overflow='auto'; }
+function openProjectModal(){
+  $('project-form').reset(); $('sdg-hidden').value=''; currentStep=1; updateStepUI(); renderSDGs();
+  $('project-modal').classList.remove('hidden'); document.body.style.overflow='hidden';
+}
+let currentStep=1; const totalSteps=4;
+function updateStepUI(){
+  document.querySelectorAll('.form-step').forEach((el,i)=>el.classList.toggle('active',i===currentStep-1));
+  document.querySelectorAll('.step-indicator').forEach((d,i)=>{
+    d.classList.toggle('active',i===currentStep-1); d.classList.toggle('completed',i<currentStep-1);
+  });
+  $('prev-btn').style.display   = currentStep===1 ? 'none':'block';
+  $('next-btn').style.display   = currentStep===totalSteps ? 'none':'block';
+  $('submit-btn').style.display = currentStep===totalSteps ? 'block':'none';
+  if(currentStep===totalSteps){
+    const f=new FormData($('project-form'));
+    $('review-title').textContent   = f.get('title')||'-';
+    $('review-summary').textContent = f.get('summary')||'-';
+    $('review-location').textContent= f.get('location')||'-';
+    $('review-duration').textContent= `${f.get('start-date')||'?'} to ${f.get('end-date')||'?'}`;
+    $('review-budget').textContent  = f.get('budget')?`USD ${f.get('budget')}`:'-';
+    $('review-team').textContent    = f.get('team')||'-';
+    $('review-sdgs').textContent    = $('sdg-hidden').value || '-';
+    $('review-points').textContent  = f.get('points_worth') || '0';
+  }
+}
+function changeStep(dir){
+  if((dir===1&&currentStep<totalSteps)||(dir===-1&&currentStep>1)){
+    currentStep+=dir; updateStepUI(); window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+const SDGS=['No Poverty','Zero Hunger','Good Health and Well-being','Quality Education','Gender Equality','Clean Water and Sanitation','Affordable and Clean Energy','Decent Work and Economic Growth','Industry, Innovation and Infrastructure','Reduced Inequalities','Sustainable Cities and Communities','Responsible Consumption and Production','Climate Action','Life Below Water','Life on Land','Peace, Justice and Strong Institutions','Partnerships for the Goals'];
+function renderSDGs(){
+  const grid=$('sdg-grid'); if(!grid) return; const selected=new Set();
+  grid.innerHTML=SDGS.map((n,i)=>{
+    const num=i+1; return `<button type="button" class="sdg-tag px-3 py-2 rounded-lg border border-gray-300 text-sm flex items-center gap-2" data-code="${num}"><span class="sdg-pill sdg-${num}">SDG ${num}</span><span>${n}</span></button>`;
+  }).join('');
+  grid.querySelectorAll('.sdg-tag').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const c=btn.dataset.code;
+      if(selected.has(c)){ selected.delete(c); btn.classList.remove('selected','ring','ring-green-300','border-green-600'); }
+      else{ selected.add(c); btn.classList.add('selected','ring','ring-green-300','border-green-600'); }
+      $('sdg-hidden').value=[...selected].sort((a,b)=>a-b).join(',');
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  try{document.getElementById('submit-btn')?.addEventListener('click',()=>{const f=document.getElementById('project-form'); if(f?.requestSubmit) f.requestSubmit(); else if(f) f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});}catch{}
+  renderSDGs(); updateStepUI();
+  $('next-btn')?.addEventListener('click',()=>changeStep(1));
+  $('prev-btn')?.addEventListener('click',()=>changeStep(-1));
+});
+</script>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const sb=createClient("https://zjxxmppahgpxoltdsfaq.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo");
+
+function boolish(v){ return v===true || v==='true' || v===1 || v==='1'; }
+const ADMIN_UID = "eb1c13db-4f27-4d1f-aa45-0ef7ca010b26";
+
+// Robust admin role check (case-insensitive, supports variants)
+function isAdminRole(role) {
+  const r = String(role || '').trim().toLowerCase();
+  return r === 'admin' || r === 'administrator' || r === 'superadmin';
+}
+const resetProjBtn = document.getElementById('btn-reset-project-points');
+
+const { data:{session} }=await sb.auth.getSession();
+if(!session){ location.href='login.html?returnTo='+encodeURIComponent(location.pathname.substring(1)); }
+
+const { data: _profileRows } = await sb.from('profiles').select('username,full_name,role,avatar_url').eq('id', session.user.id).limit(1);
+const profile = (Array.isArray(_profileRows) && _profileRows.length) ? _profileRows[0] : null;
+const displayName=(profile?.username?.trim())||(profile?.full_name?.trim())||(session.user.email?.split('@')[0]??'User');
+function letterAvatar(text,size=96){
+  const c=document.createElement('canvas'); c.width=c.height=size; const ctx=c.getContext('2d');
+  let h=0; for(let i=0;i<text.length;i++) h=(h*31+text.charCodeAt(i))>>>0;
+  ctx.fillStyle=`hsl(${h%360} 70% 55%)`; ctx.fillRect(0,0,size,size);
+  ctx.fillStyle='#fff'; ctx.font=`${Math.floor(size*0.55)}px Inter,Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(text[0]?.toUpperCase()||'U',size/2,size/2); return c.toDataURL('image/png');
+}
+
+// ----- Robust navbar identity (from dashboard) -----
+// Name + Role (unchanged)
+const profileObj = profile || {};
+const nameResolved = (profileObj?.full_name?.trim()) || (profileObj?.username?.trim()) || (session.user.email?.split('@')[0] ?? 'User');
+const roleResolved = (profileObj?.role || 'student');
+document.querySelectorAll('[data-user-name]').forEach(el => el.textContent = nameResolved);
+document.querySelectorAll('[data-user-role]').forEach(el => el.textContent = roleResolved);
+
+// Immediately set a letter avatar placeholder (prevents flicker)
+document.querySelectorAll('[data-user-avatar]').forEach(el => {
+  el.src = letterAvatar(nameResolved, 64);
+});
+
+// Avatar: public URL â†’ signed URL â†’ letter avatar
+async function resolveAvatarUrlDashLike(raw, displayName){
+  let src = (raw ?? '').trim();
+  if (src) {
+    if (!/^https?:\/\//i.test(src) && !src.startsWith('data:image/')) {
+      try {
+        const { data: pub } = sb.storage.from('avatars').getPublicUrl(src);
+        if (pub?.publicUrl) return pub.publicUrl;
+        const { data: signed } = await sb.storage.from('avatars').createSignedUrl(src, 60*60*24*365);
+        if (signed?.signedUrl) return signed.signedUrl;
+      } catch {}
+    } else {
+      return src;
+    }
+  }
+  return letterAvatar(displayName);
+}
+
+(async () => {
+  const avatarURL = await resolveAvatarUrlDashLike(profileObj?.avatar_url, nameResolved);
+  document.querySelectorAll('[data-user-avatar]').forEach(el => {
+    el.decoding = 'async';
+    el.referrerPolicy = 'no-referrer';
+    el.src = avatarURL; // swap to the real/signed URL once ready
+    el.onerror = () => { el.src = letterAvatar(nameResolved); };
+  });
+})();
+
+// Admin-only: show reset button and wire handler
+const isAdminUser = isAdminRole(roleResolved) || (session?.user?.id === ADMIN_UID);
+if (isAdminUser) {
+  resetProjBtn?.classList.remove('hidden');
+  resetProjBtn?.addEventListener('click', async () => {
+    const ok = confirm('This will set points = 0 for all project impact records for all users. Continue?');
+    if (!ok) return;
+    try {
+      resetProjBtn.disabled = true;
+      resetProjBtn.textContent = 'Resetting...';
+      const { error } = await sb.rpc('admin_reset_project_points');
+      if (error) {
+        console.error(error);
+        toast?.error?.('Reset failed: ' + error.message);
+      } else {
+        toast?.success?.('All project impact points reset to 0');
+        await refreshImpactPointsUI?.();
+      }
+    } catch (e) {
+      toast?.error?.('Reset failed: ' + (e?.message || e));
+    } finally {
+      resetProjBtn.disabled = false;
+      resetProjBtn.textContent = 'Reset Project Impact Points';
+    }
+  });
+} else {
+  resetProjBtn?.classList.add('hidden');
+}
+
+const fmt=d=>d?new Date(d).toLocaleDateString():'â€“';
+const prettySDG=sdg=>{ if(!sdg) return 'SDG'; const list=String(sdg).split(',').map(s=>s.trim()).filter(Boolean); return list.length?`SDG ${list.join(', ')}`:'SDG'; };
+function normalizeName(s){
+  if(!s) return '';
+  return String(s).toLowerCase()
+    .replace(/\(.*?\)/g,'')
+    .replace(/[^a-z0-9\s]/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function parseTeam(team){
+  if(Array.isArray(team)) return team;
+  if(typeof team === 'string') return team.split(',').map(s=>s.trim()).filter(Boolean);
+  return [];
+}
+function nameInTeam(team, fullName){
+  if(!fullName) return false;
+  const want = normalizeName(fullName);
+  const names = parseTeam(team).map(normalizeName).filter(Boolean);
+  return names.includes(want);
+}
+
+function inferredStatus(p){
+  const now = new Date();
+  const s = p && p.starts_at ? new Date(p.starts_at) : null;
+  const e = p && p.ends_at   ? new Date(p.ends_at)   : null;
+  if (s && e){
+    if (now > e) return 'completed';
+    if (now >= s && now <= e) return 'in-progress';
+    if (now < s && now < e) return 'planning';
+  }
+  if (s && !e) return (now < s) ? 'planning' : 'in-progress';
+  if (!s && e) return (now > e) ? 'completed' : 'planning';
+  return 'planning';
+}
+function isCompleted(p){
+  // Treat explicit status as authoritative, otherwise infer by dates (inclusive of end date)
+  const status = String(p?.status || '').trim().toLowerCase();
+  if (status === 'completed') return true;
+  const toYMD = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const parse = v => { if(!v) return null; const d = new Date(v); return isNaN(d) ? null : toYMD(d); };
+  const today = toYMD(new Date());
+  const s = parse(p?.starts_at);
+  const e = parse(p?.ends_at);
+  // Allow finalization on the end date or after
+  return !!(s && e && today >= e);
+}
+function badgeInfo(p){
+  if(p.is_approved !== true){
+    return {label:'Idea', filter:'planning', badge:'bg-red-100 text-red-800'};
+  }
+  const s=inferredStatus(p);
+  const isAwarded = (p && ((p.is_awarded===true)||(p.is_awarded==='true')||(p.is_awarded===1)||(p.is_awarded==='1')));
+  if (s==='completed' && isAwarded) return {label:'Completed & Awarded', filter:'completed', badge:'bg-purple-100 text-purple-800'};;
+  if(s==='planning')   return {label:'Planning',   filter:'planning',   badge:'bg-blue-100 text-blue-800'};
+  if(s==='completed')  return {label:'Completed',  filter:'completed',  badge:'bg-green-100 text-green-800'};
+  return {label:'In Progress', filter:'in-progress', badge:'bg-yellow-100 text-yellow-800'};
+}
+function cardHTML(p, meId){
+  const b=badgeInfo(p),img=p.image||'resources/renewable-energy.jpg',sdgLabel=prettySDG(p.sdg);
+  const leftChip = `ðŸ† ${Number(p.points_worth||0)} pts`;
+  const rightChip = (p.starts_at||p.ends_at) ? `ðŸ—“ ${fmt(p.starts_at)} â†’ ${fmt(p.ends_at)}` : 'ðŸ—“ scheduled';
+  const volunteered = p.__volunteeredByMe ? '<span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-[11px]">? Volunteered</span>' : '';
+  return `
+    <a href="innovation-lab.html?slug=${encodeURIComponent(p.slug)}" class="project-card bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden border border-gray-100 block"
+       data-status="${b.filter}" data-owner="${p.user_id===meId?'me':''}">
+      <img src="${img}" alt="${p.title}" class="w-full h-48 object-cover">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-3">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">${sdgLabel}</span>
+          <span class="${b.badge} px-2 py-1 rounded-full text-xs font-medium">${b.label}</span>
+        </div>
+        <h3 class="display-font text-xl font-bold text-gray-900 mb-2">${p.title}</h3>
+        <p class="text-gray-600 text-sm mb-4">${p.summary||''}</p>
+        <div class="flex items-center justify-between text-xs text-gray-600">
+          <span>${leftChip}${volunteered}</span>
+          <span>${rightChip}</span>
+        </div>
+      </div>
+    </a>`;
+}
+async function loadProjects(){
+  const grid=document.getElementById('projects-grid'); if(!grid) return;
+  
+const { data: myVols } = await sb.from('project_volunteers').select('project_id').eq('user_id', session.user.id);
+const volunteeredIds = new Set((myVols||[]).map(v => v.project_id));
+
+const sel = 'id, slug, title, summary, status, is_approved, is_awarded, sdg, created_at, user_id, starts_at, ends_at, points_worth, team';
+
+const qMine = await sb.from('projects').select(sel).eq('user_id', session.user.id);
+if (qMine.error) { console.warn(qMine.error); return; }
+
+const qPub  = await sb.from('projects').select(sel).eq('is_approved', true);
+if (qPub.error) { console.warn(qPub.error); return; }
+
+// ADMIN: also load everyone’s unapproved ideas
+let ideasAll = [];
+if (isAdminUser) {
+  const qIdeas = await sb.from('projects').select(sel).eq('is_approved', false);
+  if (!qIdeas.error) ideasAll = qIdeas.data || [];
+}
+
+const _rows = [...(qMine.data||[]), ...(qPub.data||[]), ...ideasAll];
+const _byId = new Map();
+for (const r of _rows){ if (r && r.id && !_byId.has(r.id)) _byId.set(r.id, r); }
+const data = Array.from(_byId.values()).sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
+
+  const existing=[...grid.querySelectorAll('a[href*="innovation-lab.html?slug="]')].map(a=>new URL(a.href,location.href).searchParams.get('slug'));
+  const today=new Date();
+const keep=(p)=>{
+  const isAwarded = (p && ((p.is_awarded===true)||(p.is_awarded==='true')||(p.is_awarded===1)||(p.is_awarded==='1')));
+  if(!isAwarded) return true;
+  try{
+    const t = localStorage.getItem(`gc:awardedAt:${p.id}`);
+    if(t){
+      const awardAt = new Date(t);
+      if(!isNaN(+awardAt)){
+        return Date.now() <= (awardAt.getTime() + 24*60*60*1000);
+      }
+    }
+  }catch{}
+  return true;
+};
+const html=(data||[]).filter(keep)
+.filter(p=>!existing.includes(p.slug))
+  .map(p => ({...p, __volunteeredByMe: (volunteeredIds.has(p.id) || nameInTeam(p.team, profile?.full_name))}))
+  .map(p => cardHTML(p, session.user.id))
+  .join('');
+  if(html) grid.insertAdjacentHTML('beforeend',html);
+}
+await loadProjects();
+
+let currentProject = null;
+(async()=>{
+  const slug=new URLSearchParams(location.search).get('slug'); if(!slug) return;
+  document.getElementById('grid-section')?.classList.add('hidden');
+  document.getElementById('detail-section')?.classList.remove('hidden');
+  const { data, error } = await sb.from('projects').select('*').eq('slug', slug).limit(1);
+  let proj = (Array.isArray(data) && data.length) ? data[0] : null;
+
+  // Fallback: built-in static demo projects
+  if (!proj) {
+    const STATIC_PROJECTS = {
+      'campus-recycling-revolution': {
+        title: 'Campus Recycling Revolution',
+        summary: 'Comprehensive recycling program implementing waste sorting, workshops, and challenges to reduce campus waste by 60%.',
+        sdg: '12, 13',
+        image: 'resources/recycling-project.jpg',
+        starts_at: new Date(new Date().getFullYear(), new Date().getMonth()-1, 1).toISOString(),
+        ends_at:   new Date(new Date().getFullYear(), new Date().getMonth()+1, 1).toISOString(),
+        location: 'Main Campus',
+        description: 'Student-led initiative to expand recycling stations, run peer workshops, and track diversion rates across campus buildings.',
+        impact: 'Targeting 60% landfill reduction; improved awareness; cleaner campus environment.',
+        team: ['Sustainability Club', 'Facilities'],
+        points_worth: 150,
+        is_approved: true
+      },
+      'solar-learning-lab': {
+        title: 'Solar Learning Lab',
+        summary: 'Hands-on renewable energy education program where students build a solar array and monitor output via IoT.',
+        sdg: '7, 9',
+        image: 'resources/renewable-energy.jpg',
+        starts_at: new Date(new Date().getFullYear(), new Date().getMonth()-5, 1).toISOString(),
+        ends_at:   new Date(new Date().getFullYear(), new Date().getMonth()-2, 28).toISOString(),
+        location: 'Physics Block Roof',
+        description: 'Students assembled a small PV system powering lab equipment; data dashboards visualize real-time generation.',
+        impact: '200+ students trained; ~1.5 MWh clean energy generated to date; curriculum modules created.',
+        team: ['STEM Club', 'Energy Dept.'],
+        points_worth: 200,
+        is_approved: true,
+        is_awarded: true
+      },
+      'urban-food-forest': {
+        title: 'Urban Food Forest',
+        summary: 'Permaculture-based garden enhancing biodiversity and food security while teaching organic farming.',
+        sdg: '2, 15',
+        image: 'resources/community-garden.jpg',
+        starts_at: new Date(new Date().getFullYear(), new Date().getMonth()+1, 1).toISOString(),
+        ends_at:   new Date(new Date().getFullYear(), new Date().getMonth()+4, 30).toISOString(),
+        location: 'South Courtyard',
+        description: 'Designing layered guilds, soil regeneration via compost, and native species to build resilience and yield.',
+        impact: 'Pollinator habitat, hands-on learning, fresh produce for the community pantry.',
+        team: ['Eco Society'],
+        points_worth: 120,
+        is_approved: true
+      }
+    };
+    if (STATIC_PROJECTS[slug]) {
+      proj = { slug, ...STATIC_PROJECTS[slug], __static: true };
+    }
+  }
+  const d=(sel,txt)=>{ const el=document.getElementById(sel); if(el) el.textContent=txt||'â€“'; };
+  if(!proj){ d('d-title','Project not found'); d('d-summary','We could not find this project.'); return; }
+  currentProject = proj;
+  if (proj.__static) { document.getElementById('open-volunteer')?.classList.add('hidden'); document.getElementById('volunteered-pill')?.classList.add('hidden'); }
+  
+  try {
+    const { data: vrows } = await sb.from('project_volunteers').select('name').eq('project_id', proj.id);
+    const baseTeam = (typeof proj.team==='string' ? proj.team.split(',').map(s=>s.trim()).filter(Boolean) : Array.isArray(proj.team) ? proj.team : []);
+    const volunteerNames = (vrows||[]).map(r => (r.name||'Volunteer').trim()).filter(Boolean);
+    const merged = [];
+    [...baseTeam, ...volunteerNames].forEach(n => { if(n && !merged.includes(n)) merged.push(n); });
+    const teamList = document.getElementById('d-team');
+    if(teamList){ teamList.innerHTML = (merged.length?merged:['You (Leader)']).map(n=>`<li>${n}</li>`).join(''); }
+  } catch(e){ console.warn('volunteers load failed', e); }
+const b=badgeInfo(proj);
+  d('d-title',proj.title||'Untitled'); d('d-summary',proj.summary||'â€“');
+  const badge=document.getElementById('d-badge'); if(badge){ badge.textContent=b.label; badge.className=`${b.badge} px-3 py-1 rounded-full text-sm font-medium`; }
+  d('d-sdg',prettySDG(proj.sdg)); 
+  const ptsEl = document.getElementById('d-points');
+  if (ptsEl && proj) { ptsEl.textContent = `ðŸ† ${Number(proj.points_worth || 0)} pts`; }
+  d('d-timeline',`${fmt(proj.starts_at)} â€“ ${fmt(proj.ends_at)}`); d('d-location',proj.location); d('d-budget',(proj.budget||proj.budget===0)?`USD ${proj.budget}`:'â€“');
+  d('d-description',proj.description||proj.summary||''); d('d-impact',proj.impact||'');
+
+  const team=typeof proj.team==='string'?proj.team.split(',').map(s=>s.trim()).filter(Boolean):Array.isArray(proj.team)?proj.team:[];
+  const teamEl = document.getElementById('d-team');
+  if (teamEl && teamEl.childElementCount === 0) {
+    teamEl.innerHTML = team.length ? team.map(t=>`<li>${t}</li>`).join('') : '<li>You (Leader)</li>';
+  }
+
+  const approvalBanner = document.getElementById('approval-banner');
+  if (approvalBanner) approvalBanner.classList.toggle('hidden', (proj.__static || !(isCompleted(proj) && !boolish(proj.is_awarded))));
+
+  const isAdmin = isAdminRole(profile?.role) || (session?.user?.id === ADMIN_UID);
+  const bar   = document.getElementById('admin-approve-bar');
+  const hint  = document.getElementById('admin-approve-hint');
+  const btnPub= document.getElementById('btn-publish-project');
+  const btnFin= document.getElementById('btn-finalize-award');
+
+  if (isAdmin && !proj.__static) {
+    bar.classList.remove('hidden');
+
+    const published = boolish(proj.is_approved);
+    const finalized = boolish(proj.is_awarded);
+    const completed = isCompleted(proj);
+
+    if (btnPub) btnPub.disabled = published;
+    if (btnFin) btnFin.disabled = !(completed && !finalized);
+
+    if (hint) {
+      hint.textContent = finalized
+        ? 'Already finalized. Points were awarded.'
+        : ( published
+            ? (completed ? 'Ready to finalize & award points.' : 'Published. Waiting for completion to finalize.')
+            : 'Not published yet. Publish to make it official and gather volunteers.' );
+    }
+
+    btnPub?.addEventListener('click', async () => {
+      if (published){ toast('Already published.','info'); return; }
+      const { error: pubErr } = await sb.rpc('publish_project', { p_project_id: currentProject.id });
+      if (pubErr){ toast('Publish failed: '+pubErr.message,'error'); return; }
+      currentProject.is_approved = true;
+      toast('Project published (approved).','success');
+      btnPub.disabled = true;
+      if (hint) hint.textContent = isCompleted(currentProject) ? 'Ready to finalize & award points.' : 'Published. Waiting for completion to finalize.';
+    });
+
+    btnFin?.addEventListener('click', async () => {
+      if (!isCompleted(currentProject)){ toast('Project must be completed before finalization.','error'); return; }
+      if (boolish(currentProject.is_awarded)){ toast('Already finalized.','info'); return; }
+      let finErr = null;
+      let finCall = await sb.rpc('finalize_project', { p_project_id: currentProject.id });
+      if (finCall && finCall.error) {
+        const fallback = await sb.rpc('finalize_project_award', { p_project_id: currentProject.id });
+        if (fallback && fallback.error) { finErr = fallback.error; }
+        else finCall = fallback;
+      }
+      if (finErr || (finCall && finCall.error)) {
+        const errObj = (finErr || finCall.error);
+        const msg = (errObj && (errObj.message || errObj.error_description || errObj.error)) || 'Finalize failed';
+        toast('Finalize failed: '+ msg, 'error');
+        console.error('Finalize error:', errObj);
+        return;
+      }
+      currentProject.is_awarded = true;
+try { localStorage.setItem(`gc:awardedAt:${currentProject.id}`, new Date().toISOString()); } catch {}
+      toast('Finalized! Points awarded to volunteers.','success');
+      document.getElementById('approval-banner')?.classList.add('hidden');
+      btnFin.disabled = true;
+      if (hint) hint.textContent = 'Already finalized. Points were awarded.';
+    });
+  }
+
+  try {
+    const { data: mine } = await sb.from('project_volunteers').select('id').eq('project_id', proj.id).eq('user_id', session.user.id).limit(1);
+    const implicit = nameInTeam(proj.team, profile?.full_name);
+    const already = (Array.isArray(mine) && mine.length) || implicit;
+    if (already){
+      document.getElementById('volunteered-pill')?.classList.remove('hidden');
+      const btn = document.getElementById('open-volunteer');
+      if (btn){ btn.disabled = true; btn.title = 'You already volunteered for this project.'; }
+      window.__hasVolunteered = true;
+    } else {
+      window.__hasVolunteered = false;
+    }
+  } catch {}
+
+  document.getElementById('open-volunteer')?.addEventListener('click', async () => {
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if (session?.user?.id && proj?.user_id === session.user.id){
+      toast('You are the creator of this project â€” you can\'t volunteer for it.', 'error');
+      return;
+    }
+  } catch {}
+  openVolModal(proj);
+});
+})();
+
+/* ------- VOLUNTEER MODAL FUNCTIONS (exposed globally) ------- */
+  async function openVolModal(p){
+    try {
+      // Ensure user is logged in so registrations tie to same identity as Events
+      const { data:{ session } } = await sb.auth.getSession();
+      if (!session?.user?.id){
+        const ret = location.pathname + location.search;
+        location.href = 'login.html?returnTo=' + encodeURIComponent(ret);
+        return;
+      }
+
+      // Prefill and lock identity fields for consistency across pages
+      const nameInput  = document.querySelector('#vol-form input[name="name"]');
+      const emailInput = document.querySelector('#vol-form input[name="email"]');
+
+      // Best-effort fetch of profile name; fall back to username/email handle
+      let displayName = '';
+      try {
+        const { data: prof } = await sb.from('profiles').select('full_name, username').eq('id', session.user.id).maybeSingle();
+        const full = (prof?.full_name||'').trim();
+        const user = (prof?.username||'').trim();
+        displayName = full || user || (session.user.email?.split('@')[0]||'');
+      } catch {}
+
+      if (nameInput && !nameInput.value) nameInput.value = displayName;
+      if (emailInput){
+        emailInput.value = session.user.email || '';
+        emailInput.readOnly = true; // lock to ensure Events page can match by email
+      }
+    } catch {}
+
+    window.__currentProject = p;
+    document.getElementById('vol-modal').classList.remove('hidden');
+  }
+  function closeVolModal(){ document.getElementById('vol-modal').classList.add('hidden'); }
+  window.openVolModal = openVolModal;
+  window.closeVolModal = closeVolModal;
+
+document.getElementById('vol-form')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+  const sb2=createClient("https://zjxxmppahgpxoltdsfaq.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo");
+  const { data:{session} }=await sb2.auth.getSession();
+  if (!session?.user?.id){
+    const ret = location.pathname + location.search;
+    location.href = 'login.html?returnTo=' + encodeURIComponent(ret);
+    return;
+  }
+  const p = window.__currentProject; if (!p) return;
+  if (typeof isCompleted==='function' && (isCompleted(p) || (typeof boolish==='function' && boolish(p?.is_awarded)))){
+    toast('This project is already completed â€” volunteering is closed.', 'error');
+    return;
+  }
+    if (p?.user_id && session?.user?.id && p.user_id === session.user.id){
+    toast('You are the creator of this project â€” you can\'t volunteer for it.', 'error');
+    return;
+  }
+  // Prevent re-volunteering
+  if (window.__hasVolunteered){
+    toast('You already volunteered for this project.', 'info');
+    closeVolModal();
+    return;
+  }
+  try {
+    const { data: exists } = await sb2.from('project_volunteers').select('id').eq('project_id', p.id).eq('user_id', session.user.id).limit(1);
+    if ((Array.isArray(exists) && exists.length) || nameInTeam(p.team, profile?.full_name)){
+      toast('You already volunteered for this project.', 'info');
+      closeVolModal();
+      return;
+    }
+  } catch {}
+const f = new FormData(e.target);
+  const row = {
+    project_id: p.id,
+    user_id: session.user.id,
+    name: (f.get('name')||'').trim(),
+    // Force email to logged-in user's email to align with Events page matching
+    email: (session.user.email||'').trim(),
+    phone: (f.get('phone')||'').trim() || null,
+    message: (f.get('message')||'').trim() || null
+  };
+  if (!row.name || !row.email){ toast('Name and email are required.','error'); return; }
+  const { error } = await sb2.from('project_volunteers').upsert(row, { onConflict: 'project_id,user_id' });
+  if (error){ toast('Volunteer failed: '+error.message,'error'); return; }
+  window.__hasVolunteered = true;
+  const __btn = document.getElementById('open-volunteer');
+  if (__btn){ __btn.disabled = true; __btn.title = 'You already volunteered for this project.'; }
+  const teamList = document.getElementById('d-team');
+  if (teamList){ const li = document.createElement('li'); li.textContent = row.name; teamList.appendChild(li); }
+  document.getElementById('volunteered-pill')?.classList.remove('hidden');
+  try {
+    const { data: vrows2 } = await sb2.from('project_volunteers').select('name').eq('project_id', p.id);
+    const teamList2 = document.getElementById('d-team');
+    if(teamList2){
+      const volunteerNames2 = (vrows2||[]).map(r => (r.name||'Volunteer').trim()).filter(Boolean);
+      const existingNames = [...teamList2.querySelectorAll('li')].map(li => li.textContent.trim());
+      const merged2 = [];
+      [...existingNames, ...volunteerNames2].forEach(n => { if(n && !merged2.includes(n)) merged2.push(n); });
+      teamList2.innerHTML = merged2.map(n=>`<li>${n}</li>`).join('');
+    }
+  } catch(e){ console.warn('volunteers refresh failed', e); }
+  closeVolModal();
+  toast('Thanks for volunteering!','success');
+});
+
+let creating=false;
+document.getElementById('project-form')?.addEventListener('submit',async(e)=>{
+  e.preventDefault(); if(creating) return; creating=true;
+  try{
+    const {data:{user}}=await sb.auth.getUser(); if(!user){ location.href='login.html?returnTo=innovation-lab.html'; return; }
+    const f=new FormData(e.target);
+    const title=(f.get('title')||'').trim(),summary=(f.get('summary')||'').trim();
+    if(!title||!summary){ toast('Title and summary required','error'); return; }
+    const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,80) || 'project';
+    async function ensureUniqueSlug(base){
+      const { data: rows } = await sb
+        .from('projects')
+        .select('slug')
+        .ilike('slug', `${base}%`);
+      const taken = new Set((rows||[]).map(r => r.slug));
+      if (!taken.has(base)) return base;
+      let n = 2; while (taken.has(`${base}-${n}`)) n++;
+      return `${base}-${n}`;
+    }
+    const slug = await ensureUniqueSlug(baseSlug);
+
+    const row={
+      user_id:user.id,slug,title,summary,status:'idea',is_approved:false,is_awarded:false,
+      location:(f.get('location')||'').trim()||null,
+      starts_at:f.get('start-date')?new Date(f.get('start-date')).toISOString():null,
+      ends_at:f.get('end-date')?new Date(f.get('end-date')).toISOString():null,
+      description:(f.get('detail-desc')||'').trim()||null,
+      impact:(f.get('impact')||'').trim()||null,
+      budget:f.get('budget')===''?null:Number(f.get('budget')),
+      team:(f.get('team')||'').trim()||null,
+      sdg:(f.get('sdg')||'').trim()||null,
+      points_worth: f.get('points_worth')==='' ? 0 : Number(f.get('points_worth'))
+    };
+    const {error}=await sb.from('projects').insert(row);
+    if(error){ toast('Create failed: '+error.message,'error'); return; }
+    toast('Project created! Pending publish.','success');
+    closeProjectModal(); e.target.reset(); currentStep=1; updateStepUI();
+    row.__volunteeredByMe = false;
+    document.getElementById('projects-grid')?.insertAdjacentHTML('afterbegin', cardHTML(row, user.id));
+  }finally{ creating=false; }
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+    const filter=btn.dataset.filter;
+    document.querySelectorAll('#projects-grid .project-card').forEach(card=>{
+      const status=card.dataset.status;
+      const mine=card.dataset.owner==='me';
+      card.style.display=
+        filter==='all' ? '' :
+        filter==='my-projects' ? (mine?'':'none') :
+        status===filter ? '' : 'none';
+    });
+  });
+});
+</script>
+
+<script type="module">
+const seed=[
+  {slug:"campus-recycling-revolution",title:"Campus Recycling Revolution",summary:"Comprehensive recycling program implementing waste sorting, workshops, and challenges to reduce campus waste by 60%.",status:"in-progress",is_approved:true,sdg:"12,13",location:"GreenCell High-School",starts_at:"2024-08-01",ends_at:"2024-12-15",budget:2400,description:"Students designed a three-bin system (landfill / recycling / compost), organised weekly workshops, and ran a month-long â€˜waste-audit challengeâ€™.",impact:"60% reduction of landfill waste; 400 students trained.",team:["Emma Chen (Leader)","Alex Park","Maya Patel","Mr. Greene (Mentor)"], points_worth: 200},
+  {slug:"solar-learning-lab",title:"Solar Learning Lab",summary:"Hands-on renewable-energy education where students build a 1 kW solar array and monitor output via IoT.",status:"completed",is_approved:true,sdg:"7,9",location:"GreenCell Maker-Space",starts_at:"2023-09-01",ends_at:"2024-01-31",budget:3100,description:"Students assembled a 6-panel array and built a dashboard that logs live power, COâ‚‚-offset and weather data.",impact:"1,050 kWh clean electricity generated; 0.7 t COâ‚‚-e avoided.",team:["Emma Chen (Leader)","Leo Vu","Sara Lopez","Dr. Torres (Advisor)"], points_worth: 200},
+  {slug:"urban-food-forest",title:"Urban Food Forest",summary:"Permaculture-based garden enhancing biodiversity and food security while teaching organic farming.",status:"planning",is_approved:true,sdg:"2,15",location:"GreenCell Back-Lot (200 mÂ²)",starts_at:"2024-11-01",ends_at:"2025-06-30",budget:1800,description:"Seven-layer food-forest with native species; drip irrigation and composting.",impact:"Estimated 150 kg produce/year; 30% more pollinators.",team:["Emma Chen (Leader)","Maya Patel","Sam Rivera","Ms. Ford (Garden Co-ord)"], points_worth: 150}
+];
+seed.forEach(r=>localStorage.setItem(`gc:project:${r.slug}`,JSON.stringify(r)));
+</script>
+<footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center"><span class="text-white font-bold text-lg">ðŸŒ±</span></div>
+            <span class="display-font text-2xl font-bold">GreenCell</span>
+          </div>
+          <p class="text-gray-400 leading-relaxed">Empowering youth worldwide to create sustainable solutions and drive environmental change.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Platform</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="dashboard.html" class="hover:text-green-400 transition-colors">Dashboard</a></li>
+            <li><a href="innovation-lab.html" class="hover:text-green-400 transition-colors">Innovation Lab</a></li>
+            <li><a href="learning-hub.html" class="hover:text-green-400 transition-colors">Learning Hub</a></li>
+            <li><a href="events.html" class="hover:text-green-400 transition-colors">Events</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Resources</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="#" class="hover:text-green-400 transition-colors">SDG Guide</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Project Templates</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Best Practices</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Impact Reports</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Connect</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="contact.html" class="hover:text-green-400 transition-colors">Contact Us</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Community Forum</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Newsletter</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Social Media</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <p>&copy; 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/emoji-fix.js"></script>
+</body></html>

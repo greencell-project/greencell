@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Module - GreenCell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Inter',sans-serif;background:#ffffff}
+    .display{font-family:'Playfair Display',serif}
+    .help{font-size:12px;color:#64748b}
+    textarea{white-space:pre-wrap}
+  </style>
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+<body class="min-h-screen text-slate-800">
+  <header class="sticky top-0 z-40 bg-white border-b border-slate-100">
+    <nav class="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between">
+      <a href="learning-hub.html" class="flex items-center gap-2">
+        <span class="display text-xl font-semibold">â† Learning Hub</span>
+      </a>
+      <a href="settings.html" data-gc-user class="hidden sm:flex items-center gap-2">
+        <img data-user-avatar alt="Profile" class="w-8 h-8 rounded-full object-cover border border-gray-200">
+        <span data-user-name class="text-sm font-medium"></span>
+      </a>
+    </nav>
+  </header>
+<div id="runtime-error" class="mx-auto max-w-7xl px-4 mt-3 hidden"><div class="text-sm text-red-600"></div></div>
+
+  <main class="mx-auto max-w-3xl px-4 py-8">
+    <h1 class="display text-3xl text-slate-900">Create Module</h1>
+    <p class="mt-2 text-slate-600">Fill in all details shown on the module page.</p>
+
+    <form id="mform" class="mt-6 grid gap-4" novalidate>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="grid gap-1">
+          <span class="text-sm">Title *</span>
+          <input name="title" required class="border rounded-lg px-3 py-2" placeholder="Intro to Solar Basics"/>
+        </label>
+        <label class="grid gap-1">
+          <span class="text-sm">Tag (category)</span>
+          <input name="tag" class="border rounded-lg px-3 py-2" placeholder="energy, waste, waterâ€¦"/>
+        </label>
+      </div>
+
+      <label class="grid gap-1">
+        <span class="text-sm">Short summary *</span>
+        <textarea name="summary" required rows="3" class="border rounded-lg px-3 py-2" placeholder="One or two sentences learners will see on cards."></textarea>
+      </label>
+
+      <label class="grid gap-1">
+        <span class="text-sm">Overview / Details</span>
+        <textarea name="details" rows="6" class="border rounded-lg px-3 py-2" placeholder="Context, background, references, and notes for this module."></textarea>
+        <span class="help">Shown in the Overview section.</span>
+      </label>
+
+      <label class="grid gap-1">
+        <span class="text-sm">What youâ€™ll learn</span>
+        <textarea name="what_you_learn" rows="5" class="border rounded-lg px-3 py-2" placeholder="- Key concept 1
+- Key concept 2
+- Key concept 3"></textarea>
+        <span class="help">One bullet per line.</span>
+      </label>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="grid gap-1">
+          <span class="text-sm">Prerequisites</span>
+          <textarea name="prerequisites" rows="4" class="border rounded-lg px-3 py-2" placeholder="- Basic algebra
+- Comfortable with spreadsheets"></textarea>
+        </label>
+        <label class="grid gap-1">
+          <span class="text-sm">Outcomes</span>
+          <textarea name="outcomes" rows="4" class="border rounded-lg px-3 py-2" placeholder="- Build a payback model
+- Compare two systems"></textarea>
+        </label>
+      </div>
+
+      <label class="grid gap-1">
+        <span class="text-sm">Resources / Links</span>
+        <textarea name="resources_links" rows="4" class="border rounded-lg px-3 py-2" placeholder="https://example.com/guide
+https://youtu.be/xyz
+Manufacturer PDF URL"></textarea>
+        <span class="help">One URL or note per line. Clickable on the module page.</span>
+      </label>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="grid gap-1">
+          <span class="text-sm">YouTube URL *</span>
+          <input name="youtube_url" required class="border rounded-lg px-3 py-2" placeholder="https://www.youtube.com/watch?v=..."/>
+        </label>
+        <label class="grid gap-1">
+          <span class="text-sm">Cover image URL</span>
+          <input name="image_url" class="border rounded-lg px-3 py-2" placeholder="https://â€¦/cover.jpg"/>
+          <span class="text-xs text-slate-500">or upload:</span>
+          <input id="cover_file" type="file" accept="image/*" class="border rounded-lg px-3 py-2">
+          <small id="upload_msg" class="text-xs text-slate-500"></small>
+        </label>
+      </div>
+
+      <div class="grid sm:grid-cols-3 gap-4">
+        <label class="grid gap-1">
+          <span class="text-sm">Duration (minutes)</span>
+          <input name="duration_minutes" type="number" min="0" class="border rounded-lg px-3 py-2" placeholder="15"/>
+        </label>
+        <label class="grid gap-1">
+          <span class="text-sm">Points</span>
+          <input name="points" type="number" min="0" class="border rounded-lg px-3 py-2" placeholder="50"/>
+        </label>
+        <label class="grid gap-1">
+          <span class="text-sm">Level</span>
+          <select name="level" class="border rounded-lg px-3 py-2">
+            <option value="">â€”</option>
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button class="px-5 py-2 rounded-lg bg-emerald-600 text-white font-medium">Save Module</button>
+        <a class="text-sm text-slate-600 hover:text-slate-900" href="learning-hub.html">Cancel</a>
+      </div>
+      <p id="msg" class="text-sm"></p>
+    </form>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    const sb = createClient("https://zjxxmppahgpxoltdsfaq.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo");
+
+    const msg = document.getElementById('msg');
+    const urlParams = new URLSearchParams(location.search);
+    const editId = urlParams.get('id');
+
+    function showError(msg){
+      var wrap = document.getElementById('runtime-error'); if(!wrap) return;
+      wrap.classList.remove('hidden');
+      var div = wrap.querySelector('div'); if(div){ div.textContent = msg; }
+      console.error(msg);
+    }
+
+    function fallbackImage(title){
+      var t=(title||'M').toString(); t = t ? t[0].toUpperCase() : 'M';
+      return "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><rect fill='%2380ed99' width='100%' height='100%'/><text x='50%' y='54%' text-anchor='middle' font-family='Inter,Segoe UI' font-size='160' fill='%231f2937' opacity='.35'>"+t+"</text></svg>";
+    }
+
+    async function hydrateUser(){
+      const session = await sb.auth.getUser();
+      const user = session && session.data && session.data.user ? session.data.user : null;
+      const a = document.querySelector('[data-gc-user]');
+      if(!user){ location.href = 'login.html?returnTo=create-module.html'; return; }
+      const prof = await sb.from('profiles').select('full_name,avatar_url,role').eq('id', user.id).limit(1).single();
+      const p = prof && prof.data ? prof.data : null;
+      var name = p && p.full_name ? p.full_name : (user.email ? user.email.split('@')[0] : 'You');
+      var img = p && p.avatar_url ? p.avatar_url : fallbackImage(name);
+      var nameEl = document.querySelector('[data-user-name]');
+      var imgEl = document.querySelector('[data-user-avatar]');
+      if(nameEl){ nameEl.textContent = name; }
+      if(imgEl){ imgEl.src = img; }
+      if(a){ a.classList.remove('hidden'); }
+      if(!(p && (p.role==='admin' || p.role==='mentor'))){
+        msg.className='text-red-600'; msg.textContent='You do not have permission to create modules.';
+        var form = document.getElementById('mform'); if(form){ form.classList.add('pointer-events-none','opacity-50'); }
+      }
+      return { user: user, role: p ? p.role : null };
+    }
+
+    async function main(){
+      const ctx = await hydrateUser();
+      const form = document.getElementById('mform');
+
+      if(editId){
+        const res = await sb.from('modules').select('*').eq('id', editId).limit(1).single();
+        const row = res && res.data ? res.data : null;
+        if(row){
+          var fields = ['title','tag','summary','details','what_you_learn','youtube_url','image_url','duration_minutes','points','level','prerequisites','outcomes','resources_links'];
+          for(var i=0;i<fields.length;i++){ var k=fields[i]; if(form[k]!==undefined){ form[k].value = row[k] || ''; } }
+          var btn = form.querySelector('button[type="submit"]'); if(btn){ btn.textContent = 'Update Module'; }
+          var del = document.createElement('button'); del.type='button'; del.className='text-sm text-red-600 hover:underline'; del.textContent='Delete';
+          del.addEventListener('click', async function(){ if(!confirm('Delete this module?')) return; const de = await sb.from('modules').delete().eq('id', editId); if(de && de.error){ msg.className='text-red-600'; msg.textContent='Delete failed: '+de.error.message; return; } location.href='learning-hub.html'; });
+          var bar = form.querySelector('.flex.items-center.gap-3'); if(bar){ bar.appendChild(del); }
+        }
+      }
+
+      const fileInput = document.getElementById('cover_file');
+      const uploadMsg = document.getElementById('upload_msg');
+      if(fileInput){ fileInput.addEventListener('change', async function(e){
+        // quick probe to help with 'bucket not found / policy' errors
+        try{ await sb.storage.from('module-images').list('', { limit: 1 }); }catch(x){ console.warn('Storage probe', x); }
+
+        var file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+        if(!file) return;
+        if(uploadMsg){ uploadMsg.textContent = 'Uploadingâ€¦'; }
+        try{
+          var ext = (file.name.split('.').pop()||'jpg').toLowerCase();
+          var path = 'covers/' + (crypto.randomUUID ? crypto.randomUUID() : (Date.now()+'')) + '.' + ext;
+          const up = await sb.storage.from('module-images').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || 'image/*' });
+          if (up && up.error) throw up.error;
+          const pub = sb.storage.from('module-images').getPublicUrl(path);
+          if(form.image_url){ form.image_url.value = pub.data.publicUrl; }
+          if(uploadMsg){ uploadMsg.textContent = 'Uploaded âœ”'; }
+        }catch(err){
+          if(uploadMsg){ uploadMsg.textContent = 'Upload failed: ' + (err && err.message ? err.message : err); } showError('Upload failed: ' + (err && err.message ? err.message : err) + '\nTip: Ensure a public storage bucket named "module-images" exists and policies are added. See the SQL in the task response.');
+        }
+      });}
+
+      if(form){ form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        msg.textContent='';
+        if(!(ctx && (ctx.role==='admin' || ctx.role==='mentor'))) return;
+        const f = new FormData(form);
+        const payload = {
+          title: String(f.get('title')||'').trim(),
+          tag: String(f.get('tag')||'').trim() || null,
+          summary: String(f.get('summary')||'').trim(),
+          details: String(f.get('details')||'').trim() || null,
+          what_you_learn: String(f.get('what_you_learn')||'').trim() || null,
+          youtube_url: String(f.get('youtube_url')||'').trim(),
+          image_url: String(f.get('image_url')||'').trim() || null,
+          duration_minutes: Number(f.get('duration_minutes')||0) || null,
+          points: Number(f.get('points')||0) || 0,
+          level: String(f.get('level')||'').trim() || null,
+          prerequisites: String(f.get('prerequisites')||'').trim() || null,
+          outcomes: String(f.get('outcomes')||'').trim() || null,
+          resources_links: String(f.get('resources_links')||'').trim() || null
+        };
+        if(!payload.title || !payload.summary || !payload.youtube_url){ msg.className='text-red-600'; msg.textContent='Please fill Title, Summary and YouTube URL.'; return; }
+
+        var err = null;
+        if (editId) {
+          const upd = await sb.from('modules').update(payload).eq('id', editId);
+          err = upd && upd.error ? upd.error : null;
+        } else {
+          const session = await sb.auth.getUser();
+          const user = session && session.data && session.data.user ? session.data.user : null;
+          if(user){ payload.created_by = user.id; }
+          const ins = await sb.from('modules').insert(payload);
+          err = ins && ins.error ? ins.error : null;
+        }
+        if(err){ msg.className='text-red-600'; msg.textContent = 'Save failed (did you add new columns?): ' + err.message; return; }
+        msg.className='text-emerald-700'; msg.textContent='Saved! Redirectingâ€¦';
+        setTimeout(function(){ location.href='learning-hub.html'; }, 800);
+      });}
+    }
+
+    main();
+  </script>
+  <script src="js/emoji-fix.js"></script>
+</body>
+</html>
+
+
+
+
+

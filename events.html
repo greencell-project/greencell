@@ -1,0 +1,942 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Events &amp; Challenges &#x1F389;</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root{
+      --primary-green:#2D5A27;
+      --secondary-green:#4A7C59;
+      --accent-earth:#8B4513;
+      --clean-blue:#4A90A4;
+      --neutral-gray:#6B7280;
+      --success-green:#10B981;
+      --warning-orange:#F59E0B;
+    }
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#f0f9f0 0%,#ffffff 100%);background-attachment:fixed;}
+    .display-font{font-family:'Playfair Display',serif;}
+    .accent-font{font-family:'Space Grotesk',sans-serif;}
+
+    .event-card{transition:all .3s ease;backdrop-filter:blur(10px);}
+    .event-card:hover{transform:translateY(-4px);box-shadow:0 15px 30px rgba(0,0,0,.1);}
+
+    .calendar-day{transition:all .3s ease;cursor:pointer;}
+    .calendar-day:hover{background:rgba(45,90,39,.1);}
+    .calendar-day.has-event{background:rgba(45,90,39,.1);position:relative;}
+    .calendar-day.has-event::after{content:'';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:6px;height:6px;background:var(--primary-green);border-radius:50%;}
+    .calendar-day.registered{background:var(--success-green);color:#fff;}
+    .calendar-day.selected{outline:2px solid var(--primary-green);}
+
+    .challenge-card{transition:all .3s ease;}
+    .challenge-card:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,.1);}
+
+    .nav-link{position:relative;transition:all .3s ease;}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--success-green);transition:width .3s ease;}
+    .nav-link:hover::after{width:100%;}
+    /* Apply identical effect to gc-link anchors */
+    .gc-link{position:relative;transition:all .3s ease}
+    .gc-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--success-green);transition:width .3s ease}
+    .gc-link:hover::after{width:100%}
+
+    .filter-tab{transition:all .3s ease;}
+    .filter-tab.active{background:var(--primary-green);color:#fff;}
+    .filter-tab:not(.active):hover{background:rgba(45,90,39,.1);}
+
+    .leaderboard-item{transition:all .3s ease;}
+    .leaderboard-item:hover{background:rgba(45,90,39,.05);}
+
+    .registration-modal{display:none;}
+    .registration-modal.active{display:flex;animation:fadeIn .3s ease;}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    .countdown-timer{font-variant-numeric:tabular-nums;}
+  </style>
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+<body>
+<!-- NAV: EVENTS (updated) -->
+<nav class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200" id="gc-nav">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<!-- brand -->
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center text-white"></div>
+<span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+</div>
+<!-- links -->
+<div class="hidden md:flex items-center gap-8">
+<a class="gc-link font-medium text-gray-700 hover:text-green-600" data-link="home" href="index.html">Home</a>
+<a class="gc-link font-medium text-gray-700 hover:text-green-600" data-link="dashboard" href="dashboard.html">Dashboard</a>
+<a class="gc-link font-medium text-gray-700 hover:text-green-600" data-link="innovation" href="innovation-lab.html">Innovation Lab</a>
+<a class="gc-link font-medium text-gray-700 hover:text-green-600" data-link="hub" href="learning-hub.html">Learning Hub</a>
+<a class="gc-link font-medium text-green-600" data-link="events" href="events.html">Events</a>
+<a class="gc-link font-medium text-gray-700 hover:text-green-600" data-link="contact" href="contact.html">Contact</a>
+</div>
+<!-- user capsule -->
+<div class="flex items-center gap-3">
+<div class="relative group" id="gc-avatar-wrap">
+<img alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 object-cover cursor-pointer" id="gc-avatar"/>
+<div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden group-hover:block z-50 gc-avatar-menu">
+  <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Account Settings</a>
+  <button type="button" data-gc-logout class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+</div>
+</div>
+<div class="leading-tight">
+<div class="text-sm font-medium text-gray-800" id="gc-name">—</div>
+<div class="text-[11px] text-gray-500" id="gc-role">—</div>
+        </div>
+        
+</div>
+</div>
+</div>
+</nav>
+<!-- spacer -->
+<div style="height:64px"></div>
+ 
+<!-- Navbar init & supabase bootstrap -->
+<script type="module">
+    const SUPABASE_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+
+    let createClient;
+    try { ({ createClient } = await import("https://esm.sh/@supabase/supabase-js@2")); }
+    catch { createClient = window.supabase?.createClient; }
+    const sb = createClient ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    // expose for other module blocks
+    window.SUPABASE_URL = SUPABASE_URL;
+    window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+    window.sb = sb;
+    try { if (!window.__supabase) window.__supabase = sb; } catch {}
+
+    const mark = (name) => {
+      document.querySelectorAll(".gc-link").forEach(a => a.classList.remove("text-green-600"));
+      document.querySelector(`.gc-link[data-link="${name}"]`)?.classList.add("text-green-600");
+    };
+    mark("events");
+
+    function letterAvatar(name, size = 64){
+      const t = (name || "U");
+      const c = document.createElement("canvas"); c.width = c.height = size;
+      const ctx = c.getContext("2d");
+      let h=0; for(let i=0;i<t.length;i++) h=(h*31+t.charCodeAt(i))>>>0;
+      ctx.fillStyle = `hsl(${h%360} 70% 55%)`; ctx.fillRect(0,0,size,size);
+      ctx.fillStyle = "#fff"; ctx.font = `${Math.floor(size*0.55)}px Inter, Arial`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText((t[0]||"U").toUpperCase(), size/2, size/2);
+      return c.toDataURL("image/png");
+    }
+
+    async function resolveAvatarUrl(profile, user, displayName){
+      const raw = (profile?.avatar_url ?? "").trim();
+      if (raw && /^https?:\/\//i.test(raw)) return raw;
+      if (raw && sb){
+        const pub = sb.storage.from("avatars").getPublicUrl(raw)?.data?.publicUrl;
+        if (pub) return pub;
+        const signed = (await sb.storage.from("avatars").createSignedUrl(raw, 60*60*24*365))?.data?.signedUrl;
+        if (signed) return signed;
+      }
+      return letterAvatar(displayName, 64);
+    }
+
+    async function initNav(){
+      const imgEl  = document.getElementById("gc-avatar");
+      const nameEl = document.getElementById("gc-name");
+      const roleEl = document.getElementById("gc-role");
+
+      if (!sb) {
+        imgEl.src = letterAvatar("Guest");
+        nameEl.textContent = "Guest";
+        roleEl.textContent = "visitor";
+        return;
+      }
+
+      const { data:{ session } } = await sb.auth.getSession();
+      if (!session){
+        imgEl.src = letterAvatar("Guest");
+        nameEl.textContent = "Guest";
+        roleEl.textContent = "visitor";
+        return;
+      }
+
+      const user = session.user;
+      const { data: prof } = await sb.from("profiles")
+        .select("full_name, username, role, avatar_url")
+        .eq("id", user.id).maybeSingle();
+
+      const fullName = (prof?.full_name ?? "").trim();
+      const handle   = user.email?.split("@")[0] ?? "User";
+      const display  = fullName || (prof?.username ?? "").trim() || handle;
+
+      nameEl.textContent = display;
+      roleEl.textContent = prof?.role ?? "user";
+      imgEl.decoding = "async";
+      imgEl.src = await resolveAvatarUrl(prof, user, fullName || display);
+      imgEl.onerror = () => { imgEl.src = letterAvatar(fullName || display, 64); };
+    }
+    initNav();
+    // Bind logout from avatar menu
+    (function(){
+      function bindNavLogout(){
+        document.querySelectorAll('[data-gc-logout]').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+              if (window.Auth?.signOut) { await window.Auth.signOut(); return; }
+              if (window.__supabase?.auth?.signOut) { await window.__supabase.auth.signOut(); }
+              if (window.sb?.auth?.signOut) { await window.sb.auth.signOut(); }
+              else if (window.navSb?.auth?.signOut) { await window.navSb.auth.signOut(); }
+              else if (window.sbDash?.auth?.signOut) { await window.sbDash.auth.signOut(); }
+              else if (window.supabase?.auth?.signOut) { await window.supabase.auth.signOut(); }
+            } catch {}
+            location.href = 'login.html';
+          });
+        });
+      }
+      function bindAvatarMenu(){
+        document.querySelectorAll('#gc-avatar-wrap').forEach(wrap => {
+          const panel = wrap.querySelector('.gc-avatar-menu');
+          if (!panel) return;
+          let hideTo = null;
+          const show = () => { if (hideTo) clearTimeout(hideTo); panel.classList.remove('hidden'); };
+          const hide = () => { hideTo = setTimeout(() => panel.classList.add('hidden'), 350); };
+          wrap.addEventListener('mouseenter', show);
+          wrap.addEventListener('mouseleave', hide);
+          const img = wrap.querySelector('#gc-avatar');
+          if (img) img.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); panel.classList.toggle('hidden'); });
+          panel.addEventListener('mouseenter', show);
+          panel.addEventListener('mouseleave', hide);
+        });
+        document.addEventListener('click', () => {
+          document.querySelectorAll('.gc-avatar-menu').forEach(p => p.classList.add('hidden'));
+        });
+      }
+      bindNavLogout();
+      bindAvatarMenu();
+    })();
+  </script>
+  <script type="module">
+    // Post-hook: remove unused quick actions and fix leaderboard to match dashboard logic
+    (async () => {
+      try {
+        // Remove specific Quick Action buttons by label
+        const qaHeader = Array.from(document.querySelectorAll('h3.display-font')).find(h => h.textContent.trim() === 'Quick Actions');
+        const qaContainer = qaHeader ? qaHeader.parentElement.querySelector('.space-y-3') : null;
+        if (qaContainer){
+          Array.from(qaContainer.querySelectorAll('button')).forEach(btn => {
+            const t = (btn.textContent || '').toLowerCase();
+            if (t.includes('check challenge progress') || t.includes('set event reminders')) btn.remove();
+          });
+        }
+      } catch {}
+
+      // Re-render leaderboard using profiles + module_completions + impact_points (like dashboard)
+      async function fixEventsLeaderboard(){
+        const list = document.getElementById('challengeTop3');
+        const hint = document.getElementById('leaderboardHint');
+        const delta = document.getElementById('leaderboardDelta');
+        if (!list) return;
+        try{
+          // Reuse existing client from earlier module if available
+          const url = window.SUPABASE_URL || 'https://zjxxmppahgpxoltdsfaq.supabase.co';
+          const key = window.SUPABASE_ANON_KEY || 'public-anon-key';
+          let client = window.sb;
+          if (!client){
+            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+            client = createClient(url, key);
+          }
+
+          let currentUserId = null;
+          try { const { data:{ session } } = await client.auth.getSession(); currentUserId = session?.user?.id || null; } catch {}
+
+          let merged = [];
+          try {
+            const { data: rows, error: rpcErr } = await client.rpc('leaderboard_top', { limit_n: 3 });
+            if (!rpcErr && rows?.length){
+              merged = rows.map(r => ({ id: r.user_id, points: Number(r.total_points||0), profile: { full_name: r.full_name, username: r.username } }));
+              const ids = merged.map(m => m.id);
+              if (ids.length){
+                const { data: mc } = await client.from('module_completions').select('user_id, awarded_points').in('user_id', ids);
+                const { data: ip } = await client.from('impact_points').select('user_id, points').in('user_id', ids);
+                const sums = new Map();
+                (mc||[]).forEach(r => sums.set(r.user_id, (sums.get(r.user_id)||0) + (Number(r.awarded_points)||0)));
+                (ip||[]).forEach(r => sums.set(r.user_id, (sums.get(r.user_id)||0) + (Number(r.points)||0)));
+                merged = merged.map(m => ({ ...m, points: sums.has(m.id) ? sums.get(m.id) : m.points }));
+              }
+            }
+          } catch {}
+
+          if (!merged.length){
+            const { data: compRows } = await client.from('module_completions').select('user_id, awarded_points');
+            const { data: impactRows } = await client.from('impact_points').select('user_id, points');
+            const totals = new Map();
+            (compRows||[]).forEach(r => totals.set(r.user_id, (totals.get(r.user_id)||0) + (Number(r.awarded_points)||0)));
+            (impactRows||[]).forEach(r => totals.set(r.user_id, (totals.get(r.user_id)||0) + (Number(r.points)||0)));
+            const ids = [...totals.keys()];
+            let profs = [];
+            if (ids.length){
+              const { data: p } = await client.from('profiles').select('id, full_name, username').in('id', ids);
+              profs = p || [];
+            }
+            merged = ids.map(id => ({ id, points: totals.get(id)||0, profile: (profs||[]).find(q=>q.id===id) || {} }));
+          }
+
+          merged = (merged||[]).sort((a,b)=>b.points-a.points).slice(0,3);
+          if (!merged.length){ list.innerHTML = '<li class="text-sm text-gray-500">No leaderboard data yet.</li>'; return; }
+          list.innerHTML = merged.map((m,i)=>{
+            const name = (m.profile?.full_name?.trim()) || (m.profile?.username?.trim()) || 'User';
+            return `
+              <li class="leaderboard-item flex items-center space-x-3 p-2 rounded-lg">
+                <div class="w-8 h-8 ${i===0?'bg-yellow-400':i===1?'bg-gray-400':'bg-orange-400'} rounded-full flex items-center justify-center">
+                  <span class="text-white text-sm font-bold">${i+1}</span>
+                </div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full grid place-content-center">${i===2?'\uD83E\uDD49':i===1?'\uD83E\uDD48':'\uD83E\uDD47'}</div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900">${name}</p>
+                  <p class="text-xs text-gray-500">${(m.points||0)} points</p>
+                </div>
+              </li>`;
+          }).join('');
+
+          try{
+            const top = merged;
+            let gap = 0;
+            const meIdx = currentUserId ? top.findIndex(t=>t.id===currentUserId) : -1;
+            if (meIdx > 0) gap = (top[0]?.points||0) - (top[meIdx]?.points||0);
+            else if (top.length>1) gap = (top[0]?.points||0) - (top[1]?.points||0);
+            if (gap>0 && hint && delta){
+              hint.classList.remove('hidden');
+              delta.textContent = `Only ${gap} points to reach #1 position`;
+            }
+          } catch {}
+        } catch (e){
+          try { document.getElementById('challengeTop3').innerHTML = '<li class="text-sm text-gray-500">Unable to load leaderboard.</li>'; } catch {}
+        }
+      }
+
+      // Run once now and once shortly after to override any earlier render
+      fixEventsLeaderboard();
+      setTimeout(fixEventsLeaderboard, 600);
+    })();
+  </script>
+<!-- MAIN -->
+<div class="pt-6 min-h-screen">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Header -->
+<div class="mb-8">
+<h1 class="display-font text-4xl font-bold text-gray-900 mb-2">Events &amp; Challenges &#x1F389;</h1>
+<p class="text-xl text-gray-600">Join sustainability events and compete in global challenges</p>
+</div>
+<!-- Filters -->
+<div class="mb-8">
+<div class="flex flex-wrap gap-3">
+<button class="filter-tab active px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="all">All Events</button>
+<button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="upcoming">Upcoming</button>
+<button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="registered">Registered</button>
+<button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="challenges">Challenges</button>
+<button class="filter-tab px-4 py-2 rounded-full border border-gray-300 font-medium" data-filter="past">Past Events</button>
+</div>
+</div>
+<!-- GRID -->
+<div class="grid lg:grid-cols-3 gap-8">
+<!-- Left: Events -->
+<div class="lg:col-span-2">
+<!-- Upcoming -->
+<div class="mb-8">
+<h2 class="display-font text-2xl font-bold text-gray-900 mb-6">Upcoming Events</h2>
+<!-- Innovation projects & public events go here -->
+<div class="space-y-6" id="eventsList"></div>
+</div>
+<!-- Registered -->
+<div class="mb-8">
+<h2 class="display-font text-2xl font-bold text-gray-900 mb-6">Registered Events</h2>
+<div class="space-y-6" id="registeredList"></div>
+</div>
+</div>
+<!-- Right: Calendar & Leaderboard -->
+<div class="space-y-8">
+<div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100">
+<h3 class="display-font text-xl font-bold text-gray-900 mb-4" id="calendarTitle">—</h3>
+<div class="grid grid-cols-7 gap-1 mb-2">
+<div class="text-center text-sm font-medium text-gray-500 py-2">Sun</div>
+<div class="text-center text-sm font-medium text-gray-500 py-2">Mon</div>
+<div class="text-center text-sm font-medium text-gray-500 py-2">Tue</div>
+<div class="text-center text-sm font-medium text-gray-500 py-2">Wed</div>
+<div class="text-center text-sm font-medium text-gray-500 py-2">Thu</div>
+<div class="text-center text-sm font-medium text-gray-500 py-2">Fri</div>
+<div class="text-center text-sm font-medium text-gray-500 py-2">Sat</div>
+</div>
+<div class="grid grid-cols-7 gap-1" id="calendarGrid"></div>
+<div class="flex items-center gap-4 mt-3 text-sm text-gray-600">
+<span class="inline-flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full bg-green-600"></span> Registered</span>
+<span class="inline-flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-gray-700"></span> Event</span>
+</div>
+</div>
+<!-- Leaderboard -->
+<div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100">
+<h3 class="display-font text-xl font-bold text-gray-900 mb-4">Challenge Leaderboard</h3>
+<p class="text-sm text-gray-600 mb-4">This month's top performers</p>
+<ol class="space-y-3" id="challengeTop3"></ol>
+<div class="mt-4 p-3 bg-green-50 rounded-lg border border-green-200 hidden" id="leaderboardHint">
+<p class="text-sm text-green-800 font-medium">&#x2705; You're doing great!</p>
+<p class="text-xs text-green-700 mt-1" id="leaderboardDelta"></p>
+</div>
+</div>
+<!-- Quick Actions -->
+<div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100">
+<h3 class="display-font text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
+<div class="space-y-3">
+<button class="w-full bg-green-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-800 transition-colors text-left">&#x1F4C5; Browse All Events</button>
+<button class="w-full bg-emerald-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-800 transition-colors text-left" id="viewMyRegsBtn">&#x2705; View My Registrations</button>
+<button class="w-full bg-teal-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-teal-800 transition-colors text-left">&#x1F4C8; Check Challenge Progress</button>
+<button class="w-full bg-lime-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-lime-800 transition-colors text-left">&#x23F0; Set Event Reminders</button>
+</div>
+</div>
+</div>
+</div> <!-- /grid -->
+</div>
+</div>
+<!-- Registration Form Modal (for projects) -->
+<div class="fixed inset-0 z-50 hidden" id="volunteerModalFromEvents">
+<div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="document.getElementById('volunteerModalFromEvents').classList.add('hidden')"></div>
+<div class="absolute inset-0 flex items-center justify-center p-4">
+<div class="bg-white rounded-3xl max-w-md w-full p-8">
+<div class="text-center mb-6">
+<div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="text-green-600 text-2xl">&#x1F4DD;</span>
+</div>
+<h3 class="display-font text-2xl font-bold text-gray-900">Register for Project</h3>
+</div>
+<form class="space-y-4" id="events-vol-form">
+<div>
+<label class="block text-sm text-gray-700 mb-1">Your name</label>
+<input class="w-full px-3 py-2 border border-gray-300 rounded-lg" name="name" required="" type="text"/>
+</div>
+<div>
+<label class="block text-sm text-gray-700 mb-1">Email</label>
+<input class="w-full px-3 py-2 border border-gray-300 rounded-lg" name="email" required="" type="email"/>
+</div>
+<div>
+<label class="block text-sm text-gray-700 mb-1">Phone</label>
+<input class="w-full px-3 py-2 border border-gray-300 rounded-lg" name="phone" type="tel"/>
+</div>
+<div>
+<label class="block text-sm text-gray-700 mb-1">Message</label>
+<textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg" name="message" rows="3"></textarea>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors">Register</button>
+<button class="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors" onclick="document.getElementById('volunteerModalFromEvents').classList.add('hidden')" type="button">Cancel</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- Page JS (animations, filters) -->
+<script>
+    document.addEventListener('DOMContentLoaded',() => {
+      initializeFilters();
+      animateEventCards();
+    });
+
+    function initializeFilters(){
+      const filterTabs=document.querySelectorAll('.filter-tab');
+      const sections={
+        all:['eventsList','registeredList'],
+        upcoming:['eventsList'],
+        registered:['registeredList'],
+        challenges:[], // placeholder
+        past:[]
+      };
+      filterTabs.forEach(tab=>{
+        tab.addEventListener('click',function(){
+          filterTabs.forEach(t=>t.classList.remove('active'));
+          this.classList.add('active');
+          const k=this.dataset.filter;
+          Object.values(sections).flat().forEach(id=>document.getElementById(id)?.closest('.mb-8').classList.add('hidden'));
+          (sections[k]||sections.all).forEach(id=>document.getElementById(id)?.closest('.mb-8').classList.remove('hidden'));
+        });
+      });
+    }
+
+    function animateEventCards(){
+      const cards=document.querySelectorAll('.event-card, .challenge-card');
+      cards.forEach((card,i)=>{
+        anime({targets:card,translateY:[30,0],opacity:[0,1],duration:600,delay:i*80,easing:'easeOutQuad'});
+      });
+    }
+  </script>
+<!-- Quick Actions wiring -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    function setFilter(key){
+      const tabs = Array.from(document.querySelectorAll('.filter-tab'));
+      const tab = tabs.find(t => t.dataset.filter === key);
+      if (tab) tab.click();
+    }
+
+    function smoothScrollTo(el){
+      if (!el) return;
+      el.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    const qaHeader = Array.from(document.querySelectorAll('h3.display-font')).find(h => h.textContent.trim() === 'Quick Actions');
+    const qaContainer = qaHeader ? qaHeader.parentElement.querySelector('.space-y-3') : null;
+    const qaBtns = qaContainer ? Array.from(qaContainer.querySelectorAll('button')) : [];
+
+    // 0: Browse All Events
+    if (qaBtns[0]){
+      qaBtns[0].addEventListener('click', () => {
+        setFilter('upcoming');
+        const list = document.getElementById('eventsList');
+        smoothScrollTo(list?.closest('.mb-8') || list);
+      });
+    }
+    // 1: View My Registrations
+    if (qaBtns[1]){
+      qaBtns[1].addEventListener('click', () => {
+        setFilter('registered');
+        const list = document.getElementById('registeredList');
+        smoothScrollTo(list?.closest('.mb-8') || list);
+      });
+    }
+    // 2: Check Challenge Progress -> scroll to this page's leaderboard
+    if (qaBtns[2]){
+      qaBtns[2].addEventListener('click', () => {
+        const list = document.getElementById('challengeTop3');
+        const card = list ? list.closest('.bg-white/80') : null;
+        smoothScrollTo(card || list);
+      });
+    }
+    // 3: Set Event Reminders -> scroll to calendar card and highlight briefly
+    if (qaBtns[3]){
+      qaBtns[3].addEventListener('click', () => {
+        const grid = document.getElementById('calendarGrid');
+        const card = grid ? grid.closest('.bg-white/80') : null;
+        smoothScrollTo(card || grid);
+        if (card) {
+          card.classList.add('ring-2','ring-green-300');
+          setTimeout(() => card.classList.remove('ring-2','ring-green-300'), 1200);
+        }
+      });
+    }
+  });
+</script>
+<!-- Supabase integration: projects, calendar, leaderboard -->
+
+<footer class="bg-gray-900 text-white py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid md:grid-cols-4 gap-8">
+<div>
+<div class="flex items-center space-x-3 mb-6">
+<div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center">
+<span class="text-white font-bold text-lg">&#x1F4DD;</span>
+</div>
+<span class="display-font text-2xl font-bold">GreenCell</span>
+</div>
+<p class="text-gray-400 leading-relaxed">
+          Empowering youth worldwide to create sustainable solutions and drive environmental change through education and collaboration.
+        </p>
+</div>
+<div>
+<h3 class="font-semibold text-lg mb-4">Platform</h3>
+<ul class="space-y-2 text-gray-400">
+<li><a class="hover:text-green-400 transition-colors" href="dashboard.html">Dashboard</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="innovation-lab.html">Innovation Lab</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="learning-hub.html">Learning Hub</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="events.html">Events</a></li>
+</ul>
+</div>
+<div>
+<h3 class="font-semibold text-lg mb-4">Resources</h3>
+<ul class="space-y-2 text-gray-400">
+<li><a class="hover:text-green-400 transition-colors" href="#">SDG Guide</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="#">Project Templates</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="#">Best Practices</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="#">Impact Reports</a></li>
+</ul>
+</div>
+<div>
+<h3 class="font-semibold text-lg mb-4">Connect</h3>
+<ul class="space-y-2 text-gray-400">
+<li><a class="hover:text-green-400 transition-colors" href="#">Community Forum</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="#">Newsletter</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="#">Social Media</a></li>
+<li><a class="hover:text-green-400 transition-colors" href="#">Contact Us</a></li>
+</ul>
+</div>
+</div>
+<div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+<p>© 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.</p>
+</div>
+</div>
+</footer>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const url = window.SUPABASE_URL || "https://zjxxmppahgpxoltdsfaq.supabase.co";
+  const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+  const eventsSb = window.sb ?? createClient(url, key);
+  try { if (!window.__supabase) window.__supabase = eventsSb; } catch {}
+
+  const eventsList = document.getElementById("eventsList");
+  const registeredList = document.getElementById("registeredList");
+  const calTitle = document.getElementById("calendarTitle");
+  const calGrid  = document.getElementById("calendarGrid");
+
+  const monthAbbr = (d)=>["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getMonth()];
+  const fmtDate = (v)=> v? new Date(v): null;
+  const boolish = (v)=> v===true || v==='true' || v===1 || v==='1';
+
+  function cardHTML(p, registered=false, disable=false){
+    const start = fmtDate(p.starts_at) || new Date();
+    const day = String(start.getDate()).padStart(2,"0");
+    const mon = monthAbbr(start);
+    const time = start.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+    const sdg = (p.sdg ? `SDG ${String(p.sdg).split(',').map(s=>s.trim()).filter(Boolean).join(', ')}` : 'SDG');
+    return `
+    <div class="event-card bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-100" data-status="${registered?'registered':'upcoming'}" data-project-id="${p.id}" data-date="${start.toISOString()}">
+      <div class="flex items-start space-x-4">
+        <div class="w-16 h-16 bg-green-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+          <span class="text-green-600 font-bold text-lg">${day}</span>
+          <span class="text-green-600 text-xs">${mon}</span>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="display-font text-xl font-bold text-gray-900">
+              <a class="hover:underline" href="innovation-lab.html?slug=${encodeURIComponent(p.slug)}">${p.title || "Untitled Project"}</a>
+            </h3>
+            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">${registered?'Registered':'In Progress'}</span>
+          </div>
+          <p class="text-gray-600 mb-3">${p.summary || ""}</p>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-4 text-sm text-gray-500">
+              <span>&#x1F553; ${time}</span>
+              <span>&#x1F3AF; ${sdg}</span>
+              <span>&#x2B50; ${Number(p.points_worth||0)} pts</span>
+              ${registered?'<span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-[11px]">? Registered</span>':''}
+            </div>
+            <div class="flex items-center space-x-2">
+              <a href="innovation-lab.html?slug=${encodeURIComponent(p.slug)}" class="px-3 py-2 rounded-lg text-sm bg-gray-200 hover:bg-gray-300">Details</a>
+              ${disable||registered
+                ? '<button class="px-4 py-2 rounded-lg bg-gray-300 text-gray-600 font-medium cursor-not-allowed" disabled>Registered</button>'
+                : '<button class="register-btn px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700">Register</button>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderCalendar(monthDate, dots=new Set(), fills=new Set()){
+    const y=monthDate.getFullYear(), m=monthDate.getMonth();
+    calTitle.textContent = `${monthDate.toLocaleString('en-US',{month:'long'})} ${y}`;
+    calGrid.innerHTML = "";
+    const first = new Date(y,m,1);
+    const lastDay = new Date(y,m+1,0).getDate();
+    for(let i=0;i<first.getDay();i++){
+      calGrid.insertAdjacentHTML('beforeend','<div class="py-2 text-center text-gray-400"> </div>');
+    }
+    for(let d=1; d<=lastDay; d++){
+      const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const cls = fills.has(key) ? "calendar-day registered" : (dots.has(key) ? "calendar-day has-event" : "calendar-day");
+      calGrid.insertAdjacentHTML('beforeend', `<div class="${cls} text-center py-2 rounded-lg">${d}</div>`);
+    }
+  }
+
+  // ---------- Leaderboard (completed projects only) ----------
+  async function renderLeaderboard(){
+    const list = document.getElementById('challengeTop3');
+    const hint = document.getElementById('leaderboardHint');
+    const delta = document.getElementById('leaderboardDelta');
+    list.innerHTML = "";
+
+    const now = new Date();
+    // Pull all volunteer rows with project meta
+    const { data: vols, error } = await eventsSb
+      .from("project_volunteers")
+      .select("user_id, email, name, project_id, projects:project_id (points_worth, ends_at, status, is_awarded)");
+
+    if (error) { list.innerHTML = '<li class="text-sm text-gray-500">Unable to load leaderboard.</li>'; return; }
+
+    // Determine completion (more permissive: ends_at passed OR status=completed/done OR awarded)
+    const isCompleted = (p)=>{
+      const ended = p?.ends_at ? new Date(p.ends_at) < now : false;
+      const statusC = String(p?.status||'').toLowerCase();
+      const statusCompleted = statusC.includes('complete') || statusC === 'done';
+      return ended || statusCompleted || Boolean(p?.is_awarded);
+    };
+
+    // Aggregate by identity: prefer user_id; fall back to email
+    const buckets = new Map(); // key -> {name, user_id, email, points}
+    for(const v of (vols||[])){
+      const p = v.projects || {};
+      if (!isCompleted(p)) continue;
+      const pts = Number(p.points_worth || 0);
+      if (!pts) continue;
+      const key = v.user_id || `email:${(v.email||'').toLowerCase()}`;
+      if (!buckets.has(key)) buckets.set(key, { name: v.name || '', user_id: v.user_id || null, email: v.email || '', points: 0 });
+      buckets.get(key).points += pts;
+    }
+
+    const arr = Array.from(buckets.values());
+    if (!arr.length){
+      list.innerHTML = '<li class="text-sm text-gray-500">No completed project points yet.</li>';
+      return;
+    }
+
+    // Enrich names from profiles for records with user_id
+    const needIds = arr.filter(x=>x.user_id).map(x=>x.user_id);
+    if (needIds.length){
+      const { data: profs } = await eventsSb.from("profiles").select("id, full_name, username").in("id", needIds);
+      const byId = new Map((profs||[]).map(p=>[p.id, p]));
+      arr.forEach(a=>{
+        if (a.user_id && byId.has(a.user_id)){
+          const p = byId.get(a.user_id);
+          const display = (p.full_name || p.username || '').trim();
+          if (display) a.name = display;
+        }
+        if (!a.name) a.name = a.email?.split('@')[0] || 'User';
+      });
+    } else {
+      arr.forEach(a=>{ if (!a.name) a.name = a.email?.split('@')[0] || 'User'; });
+    }
+
+    // Top 3
+    arr.sort((x,y)=> y.points - x.points);
+    const top = arr.slice(0,3);
+    list.innerHTML = top.map((t,i)=>`
+      <li class="leaderboard-item flex items-center space-x-3 p-2 rounded-lg">
+        <div class="w-8 h-8 ${i===0?'bg-yellow-400':i===1?'bg-gray-400':'bg-orange-400'} rounded-full flex items-center justify-center">
+          <span class="text-white text-sm font-bold">${i+1}</span>
+        </div>
+        <div class="w-8 h-8 bg-gray-200 rounded-full grid place-content-center">\</div>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-gray-900">${t.name}</p>
+          <p class="text-xs text-gray-500">${t.points} points</p>
+        </div>
+      </li>`).join("");
+
+    if (top.length>1){
+      const gap = top[0].points - top[1].points;
+      if (gap>0){
+        hint.classList.remove('hidden');
+        delta.textContent = `Only ${gap} points to reach #1 position`;
+      }
+    }
+  }
+
+  // ---------- Main render ----------
+  async function renderAll(){
+    if (!eventsList || !registeredList) return;
+    const { data:{ session } } = await eventsSb.auth.getSession();
+    const uid = session?.user?.id || null;
+    const uemail = session?.user?.email || null;
+
+    // Pull all registrations for this user: match by user_id OR email (covers Innovation page signups without user_id)
+    let volunteeredIds = new Set();
+    if (uid || uemail){
+      const { data: v1 } = uid ? await eventsSb.from("project_volunteers").select("project_id").eq("user_id", uid) : { data: [] };
+      const { data: v2 } = uemail ? await eventsSb.from("project_volunteers").select("project_id").eq("email", uemail) : { data: [] };
+      volunteeredIds = new Set([...(v1||[]), ...(v2||[])].map(v=>v.project_id));
+    }
+
+    // Fetch projects (approved + user's own drafts)
+    const sel = "id, slug, title, summary, status, is_approved, is_awarded, sdg, created_at, user_id, starts_at, ends_at, points_worth";
+    const [mine, pub] = await Promise.all([
+      uid ? eventsSb.from("projects").select(sel).eq("user_id", uid) : Promise.resolve({ data: [] }),
+      eventsSb.from("projects").select(sel).eq("is_approved", true)
+    ]);
+    const rows = [...(mine.data||[]), ...(pub.data||[])];
+    const byId = new Map(); rows.forEach(r=>{ if(r?.id && !byId.has(r.id)) byId.set(r.id,r); });
+    const raw = Array.from(byId.values());
+
+    const now = new Date();
+    const hide = (p)=>{
+      const ended = p.ends_at ? new Date(p.ends_at) < now : false;
+      const statusC = String(p.status||'').toLowerCase();
+      const completed = ended || statusC.includes('complete') || statusC==='done';
+      const awarded = Boolean(boolish(p.is_awarded));
+      return completed || awarded;
+    };
+    const upcoming = raw.filter(p=>!hide(p));
+
+    const unregistered = upcoming.filter(p=>!volunteeredIds.has(p.id));
+    const registered = upcoming.filter(p=>volunteeredIds.has(p.id));
+
+    // Render lists
+    eventsList.innerHTML = unregistered.map(p=>cardHTML(p,false,false)).join("");
+    registeredList.innerHTML = registered.map(p=>cardHTML(p,true,true)).join("")
+      || '<p class="text-gray-600">You have not registered for any projects yet.</p>';
+
+    // Wire register buttons
+    eventsList.querySelectorAll(".event-card .register-btn").forEach(btn=>{
+      btn.addEventListener("click",(e)=>{
+        const card = e.currentTarget.closest(".event-card");
+        const pid = card?.getAttribute("data-project-id");
+        const p = unregistered.find(x=>String(x.id)===String(pid));
+        if (!p) return;
+        window.__currentProject = p;
+        document.getElementById("volunteerModalFromEvents").classList.remove("hidden");
+      });
+    });
+
+    // Calendar state
+    const dots = new Set(unregistered.map(p=>{
+      const d=fmtDate(p.starts_at); return d? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`:null;
+    }).filter(Boolean));
+    const fills = new Set(registered.map(p=>{
+      const d=fmtDate(p.starts_at); return d? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`:null;
+    }).filter(Boolean));
+    renderCalendar(new Date(), dots, fills);
+
+    await renderLeaderboard();
+  }
+
+  // Registration submit (also used for Innovation page consistency)
+  let submitting=false;
+  document.getElementById("events-vol-form")?.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    if (submitting) return; submitting=true;
+    try{
+      const { data:{ session } } = await eventsSb.auth.getSession();
+      if (!session?.user?.id){
+        location.href = "login.html?returnTo=" + encodeURIComponent("events.html");
+        return;
+      }
+      const f = new FormData(e.target);
+      const row = {
+        project_id: window.__currentProject?.id,
+        user_id: session.user.id,
+        name: (f.get("name")||"").trim(),
+        email: (f.get("email")||session.user.email||"").trim(),
+        phone: (f.get("phone")||"").trim() || null,
+        message: (f.get("message")||"").trim() || null
+      };
+      if (!row.project_id){ alert("No project selected."); return; }
+      if (!row.name || !row.email){ alert("Name and email are required."); return; }
+
+      // Prevent duplicate
+      const { data: exists } = await eventsSb
+        .from("project_volunteers")
+        .select("id")
+        .eq("project_id", row.project_id)
+        .or(`user_id.eq.${session.user.id},email.eq.${row.email}`)
+        .limit(1);
+      if (Array.isArray(exists) && exists.length){
+        alert("You are already registered for this project.");
+        document.getElementById("volunteerModalFromEvents").classList.add("hidden");
+        return;
+      }
+
+      const { error } = await eventsSb.from("project_volunteers").insert(row);
+      if (error){ alert("Registration failed: " + error.message); return; }
+
+      document.getElementById("volunteerModalFromEvents").classList.add("hidden");
+      (e.target).reset();
+      await renderAll();
+      alert("Thanks for registering!");
+    } finally { submitting=false; }
+  });
+
+  renderAll().catch(console.error);
+  </script>
+  <script>
+    // Lightweight cleanup to fix display text corrupted by encoding
+    (function(){
+      function safeText(el, text){ if (el) el.textContent = text; }
+      function safeHTML(el, html){ if (el) el.innerHTML = html; }
+
+      // Fix header and calendar placeholders
+      const h1 = document.querySelector('h1.display-font');
+      if (h1 && /Events\s*&\s*Challenges/.test(h1.textContent) === false) {
+        safeText(h1, 'Events & Challenges');
+      }
+      const calTitle = document.getElementById('calendarTitle');
+      if (calTitle && !/^[A-Za-z]/.test(calTitle.textContent)) {
+        safeText(calTitle, 'Calendar');
+      }
+
+      // Fix nav placeholders
+      const navName = document.getElementById('gc-name');
+      const navRole = document.getElementById('gc-role');
+      if (navName && !navName.textContent.trim()) safeText(navName, 'Guest');
+      if (navRole && !navRole.textContent.trim()) safeText(navRole, 'visitor');
+
+      // Fix brand circles to "GC"
+      document.querySelectorAll('#gc-nav .w-10.h-10, footer .w-10.h-10').forEach(el => {
+        if (el && el.textContent.trim().length < 2) el.textContent = 'GC';
+      });
+
+      // Fix quick action buttons
+      const qa = Array.from(document.querySelectorAll('div.bg-white/80 .space-y-3 button'));
+      if (qa.length >= 4) {
+        safeText(qa[0], 'Browse All Events');
+        safeText(qa[1], 'View My Registrations');
+        safeText(qa[2], 'Check Challenge Progress');
+        safeText(qa[3], 'Set Event Reminders');
+      }
+
+      // Fix footer copyright junk
+      const copy = document.querySelector('footer .border-t p');
+      if (copy && !copy.textContent.includes('2024')) {
+        safeHTML(copy, '&copy; 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.');
+      }
+
+      // Post-render cleanup for event cards and leaderboard
+      function fixEventCards(container){
+        container.querySelectorAll('.event-card .text-sm.text-gray-500').forEach(row => {
+          const spans = row.querySelectorAll('span');
+          if (spans[0]) { spans[0].textContent = 'Time: ' + (spans[0].textContent.replace(/^[^0-9:]*/, '').trim()); }
+          if (spans[1]) { spans[1].textContent = spans[1].textContent.replace(/^[^A-Za-z0-9]*/, '').trim() || 'SDG'; }
+          if (spans[2]) {
+            const pts = spans[2].textContent.match(/\d+/);
+            spans[2].textContent = 'Points: ' + (pts ? pts[0] : '0');
+          }
+          // Registered badge text
+          const reg = row.querySelector('.bg-green-100.text-green-800');
+          if (reg) reg.textContent = 'Registered';
+        });
+      }
+
+      function fixLeaderboard(){
+        const items = document.querySelectorAll('#challengeTop3 .leaderboard-item');
+        items.forEach((li, i) => {
+          const medal = li.querySelector('.bg-gray-200');
+          if (medal) medal.textContent = (i===0?'\uD83E\uDD47':i===1?'\uD83E\uDD48':'\uD83E\uDD49');
+        });
+      }
+
+      // Observe list changes and apply fixes
+      const eventsList = document.getElementById('eventsList');
+      const registeredList = document.getElementById('registeredList');
+      const obs = new MutationObserver(() => {
+        if (eventsList) fixEventCards(eventsList);
+        if (registeredList) fixEventCards(registeredList);
+        fixLeaderboard();
+      });
+      if (eventsList) obs.observe(eventsList, { childList:true, subtree:true });
+      if (registeredList) obs.observe(registeredList, { childList:true, subtree:true });
+
+      // Initial pass if content already present
+      if (eventsList) fixEventCards(eventsList);
+      if (registeredList) fixEventCards(registeredList);
+      fixLeaderboard();
+    })();
+  </script>
+  <script src="js/emoji-fix.js"></script>
+  
+</body></html>
+
+
+

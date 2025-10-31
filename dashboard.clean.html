@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - GreenCell</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --primary-green:#2D5A27; --success-green:#10B981; }
+    body{ font-family: Inter, system-ui, Arial, sans-serif; background: linear-gradient(135deg,#f0f9f0 0%,#ffffff 100%); }
+    .display-font{ font-family: "Playfair Display", serif; }
+    .dashboard-card{ transition: .3s; backdrop-filter: blur(10px); }
+    .dashboard-card:hover{ transform: translateY(-4px); box-shadow: 0 15px 30px rgba(0,0,0,.08); }
+    .gc-link{ position:relative; transition:.3s }
+    .gc-link::after{ content:''; position:absolute; bottom:-4px; left:0; width:0; height:2px; background:#10B981; transition:width .3s ease }
+    .gc-link:hover::after{ width:100% }
+  </style>
+
+  <!-- Icon flicker fix: navbar leaf + name/role/avatar visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){['gc-name','gc-role','gc-avatar'].forEach(id=>{var el=document.getElementById(id); if(el) el.style.visibility='visible';});});})();</script>
+</head>
+<body class="min-h-screen">
+
+<!-- NAV -->
+<nav id="gc-nav" class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center text-white"></div>
+        <span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a data-link="home" href="index.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Home</a>
+        <a data-link="dashboard" href="dashboard.html" class="gc-link font-medium text-green-600">Dashboard</a>
+        <a data-link="innovation" href="innovation-lab.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Innovation Lab</a>
+        <a data-link="hub" href="learning-hub.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Learning Hub</a>
+        <a data-link="events" href="events.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Events</a>
+        <a data-link="contact" href="contact.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Contact</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative group" id="gc-avatar-wrap">
+          <img id="gc-avatar" alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" />
+          <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden group-hover:block z-50 gc-avatar-menu">
+            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Account Settings</a>
+            <button type="button" data-gc-logout class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+          </div>
+        </div>
+        <div class="leading-tight">
+          <div id="gc-name" class="text-sm font-medium text-gray-800">-</div>
+          <div id="gc-role" class="text-[11px] text-gray-500">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      const path = location.pathname.toLowerCase();
+      document.querySelectorAll('#gc-nav .gc-link').forEach(a=>{
+        const href = (a.getAttribute('href')||'').toLowerCase();
+        if (path.endsWith(href.split('/').pop())) a.classList.add('text-green-600');
+      });
+    })();
+  </script>
+</nav>
+<div style="height:64px"></div>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <section class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Stats -->
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="dashboard-card bg-white/80 rounded-2xl p-5 border border-gray-100">
+          <div class="text-3xl">&#x1F331;</div>
+          <div class="mt-2 text-3xl font-bold text-gray-900" id="stat-points">0</div>
+          <div class="text-sm text-gray-600" id="stat-points-detail">Impact Points</div>
+        </div>
+        <div class="dashboard-card bg-white/80 rounded-2xl p-5 border border-gray-100">
+          <div class="text-3xl">&#x1F4DA;</div>
+          <div class="mt-2 text-3xl font-bold text-gray-900" id="stat-modules">0</div>
+          <div class="text-sm text-gray-600" id="stat-modules-detail">Learning Modules</div>
+        </div>
+        <div class="dashboard-card bg-white/80 rounded-2xl p-5 border border-gray-100">
+          <div class="text-3xl">&#x1F3C6;</div>
+          <div class="mt-2 text-3xl font-bold text-gray-900" id="stat-badges">0</div>
+          <div class="text-sm text-gray-600" id="stat-badges-detail">Badges</div>
+        </div>
+      </div>
+
+      <!-- Current Projects (simple list) -->
+      <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+        <h2 class="display-font text-xl font-bold text-gray-900 mb-4">Current Projects</h2>
+        <div id="projects-list" class="space-y-4"></div>
+      </div>
+    </div>
+
+    <aside class="space-y-6">
+      <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="display-font text-xl font-bold text-gray-900">Upcoming</h2>
+          <a href="events.html" class="text-green-600 hover:text-green-700 text-sm font-medium">View All</a>
+        </div>
+        <div id="upcoming-list" class="space-y-3 text-sm text-gray-600">No upcoming items yet.</div>
+      </div>
+
+      <div class="dashboard-card bg-white/80 rounded-2xl p-6 border border-gray-100">
+        <h2 class="display-font text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+        <div class="space-y-3">
+          <a href="innovation-lab.html" class="block text-center bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium">&#x1F680; Start New Project</a>
+          <a href="learning-hub.html" class="block text-center bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg font-medium">&#x1F4DA; Continue Learning</a>
+          <a href="events.html" class="block text-center bg-lime-600 hover:bg-lime-700 text-white py-3 rounded-lg font-medium">&#x1F4C5; Join Event</a>
+          <a href="innovation-lab.html" class="block text-center bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-medium">&#x1F465; Find Team Members</a>
+        </div>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const SUPABASE_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function letterAvatarDataURL(name, size=64){
+    const c=document.createElement('canvas'); c.width=c.height=size; const ctx=c.getContext('2d');
+    const t=(name||'User'); let h=0; for(let i=0;i<t.length;i++) h=(h*31+t.charCodeAt(i))>>>0;
+    ctx.fillStyle=`hsl(${h%360} 70% 55%)`; ctx.fillRect(0,0,size,size); ctx.fillStyle='#fff';
+    ctx.font=`${Math.floor(size*0.55)}px Inter, Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText((t[0]||'U').toUpperCase(), size/2, size/2); return c.toDataURL('image/png');
+  }
+
+  async function resolveAvatarUrl(profile, user, display){
+    const raw=(profile?.avatar_url||'').trim();
+    if(raw && /^https?:\/\//i.test(raw)) return raw;
+    if(raw){
+      try{ const { data: pub } = sb.storage.from('avatars').getPublicUrl(raw); if(pub?.publicUrl) return pub.publicUrl; }catch{}
+      try{ const { data: signed } = await sb.storage.from('avatars').createSignedUrl(raw, 60*60*24*365); if(signed?.signedUrl) return signed.signedUrl; }catch{}
+    }
+    return letterAvatarDataURL(display,64);
+  }
+
+  async function initNav(){
+    const imgEl=document.getElementById('gc-avatar');
+    const nameEl=document.getElementById('gc-name');
+    const roleEl=document.getElementById('gc-role');
+    try{
+      const { data:{ user } } = await sb.auth.getUser();
+      if(!user){ imgEl.src=letterAvatarDataURL('Guest',64); if(nameEl) nameEl.textContent='Guest'; if(roleEl) roleEl.textContent='visitor'; return; }
+      const { data: profile } = await sb.from('profiles').select('full_name, username, role, avatar_url').eq('id', user.id).maybeSingle();
+      const display = (profile?.full_name?.trim()) || (profile?.username?.trim()) || (user.email?.split('@')[0] ?? 'User');
+      if(nameEl) nameEl.textContent = display; if(roleEl) roleEl.textContent = (profile?.role || 'user');
+      imgEl.src = letterAvatarDataURL(display,64);
+      try{ imgEl.src = await resolveAvatarUrl(profile, user, display); }catch{}
+    }catch{
+      const imgEl=document.getElementById('gc-avatar'); if(imgEl) imgEl.src=letterAvatarDataURL('User',64);
+    }
+  }
+
+  function renderProjects(items){
+    const list = document.getElementById('projects-list'); if(!list) return;
+    if(!items?.length){ list.innerHTML = '<p class="text-sm text-gray-600">No projects yet.</p>'; return; }
+    list.innerHTML = items.map(p=>`
+      <div class="border border-gray-200 rounded-xl p-4 bg-white flex items-center gap-4">
+        <img src="${p.image}" class="w-20 h-16 rounded-lg object-cover" alt=""/>
+        <div class="flex-1">
+          <div class="text-sm text-gray-500">${p.sdg || 'SDG'}</div>
+          <div class="font-semibold text-gray-900">${p.title}</div>
+          <div class="text-sm text-gray-600">${p.summary||''}</div>
+        </div>
+        <div class="text-xs px-2 py-1 rounded-full ${p.status==='completed'?'bg-green-100 text-green-800':p.status==='planning'?'bg-blue-100 text-blue-800':'bg-yellow-100 text-yellow-800'}">${p.status.replace(/(^|\s)([a-z])/g,(_,a,b)=>a+b.toUpperCase())}</div>
+      </div>
+    `).join('');
+  }
+
+  async function loadData(){
+    // basic, safe fallback data if DB is unavailable
+    const fallback = [
+      { title:'Campus Recycling Revolution', summary:'Reduce campus waste by 60%', status:'in progress', sdg:'12', image:'resources/recycling-project.jpg' },
+      { title:'Solar Learning Lab', summary:'Hands-on renewable energy education', status:'completed', sdg:'7,9', image:'resources/renewable-energy.jpg' },
+    ];
+    try{
+      const { data:{ user } } = await sb.auth.getUser();
+      if(!user){ renderProjects(fallback); return; }
+      const { data } = await sb.from('projects').select('title, summary, status, sdg, image').limit(5);
+      renderProjects((data&&data.length)?data:fallback);
+    }catch{ renderProjects(fallback); }
+  }
+
+  initNav();
+  loadData();
+</script>
+<script src="js/emoji-fix.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project - GreenCell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Inter, system-ui, Arial, sans-serif; background: linear-gradient(135deg,#f0f9f0 0%,#fff 100%); }
+    .display-font { font-family: "Playfair Display", serif; }
+  </style>
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+<body class="min-h-screen">
+  <nav class="bg-white/90 border-b border-gray-200 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="innovation-lab.html" class="text-green-700 font-semibold">â† Back to Innovation Lab</a>
+      <div class="flex items-center gap-3">
+        <img id="nav-avatar" class="w-8 h-8 rounded-full border border-gray-200" alt=""/>
+        <div class="leading-tight">
+          <div id="nav-name" class="text-sm font-medium text-gray-800">â€”</div>
+          <div id="nav-role" class="text-[11px] text-gray-500">â€”</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <header class="mb-6">
+      <span id="status-pill" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">â€”</span>
+      <h1 id="title" class="display-font text-3xl md:text-4xl font-extrabold text-gray-900 mt-3">Project Title</h1>
+      <p id="summary" class="text-gray-600 mt-2 max-w-3xl">â€”</p>
+      <div class="mt-3 text-sm text-gray-500" id="meta-line">â€”</div>
+    </header>
+
+    <!-- Big gallery -->
+    <section class="mb-8">
+      <div class="aspect-[16/7] w-full rounded-2xl overflow-hidden shadow border border-gray-200">
+        <img id="hero-img" src="resources/renewable-energy.jpg" class="w-full h-full object-cover" alt="Project image"/>
+      </div>
+      <div id="thumbs" class="mt-3 flex gap-3 overflow-x-auto"></div>
+    </section>
+
+    <section class="grid md:grid-cols-3 gap-8">
+      <article class="md:col-span-2 space-y-6">
+        <div>
+          <h2 class="font-semibold text-gray-900 text-xl mb-2">About this project</h2>
+          <div id="about" class="prose prose-sm max-w-none text-gray-700"></div>
+        </div>
+        <div>
+          <h2 class="font-semibold text-gray-900 text-xl mb-2">Progress</h2>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="progress-bar" class="h-2 rounded-full bg-emerald-500" style="width:0%"></div>
+          </div>
+          <div id="progress-text" class="text-sm text-gray-600 mt-2">0% complete</div>
+        </div>
+      </article>
+
+      <!-- Right column: actions -->
+      <aside class="space-y-4">
+        <div class="bg-white/80 rounded-2xl p-5 border border-gray-200">
+          <h3 class="font-semibold text-gray-900 mb-3">Get involved</h3>
+          <button id="btn-volunteer" class="w-full py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium">&#x1F91D; Volunteer</button>
+          <p id="volunteered-note" class="hidden mt-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2">Thanks! You have volunteered for this project.</p>
+        </div>
+
+        <div id="admin-box" class="hidden bg-white/80 rounded-2xl p-5 border border-gray-200">
+          <h3 class="font-semibold text-gray-900 mb-2">Admin</h3>
+          <div class="space-y-2 text-sm">
+            <button id="btn-approve" class="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium">Approve & Award Points</button>
+            <p class="text-gray-500">Awards project points to all volunteers when project is marked completed.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- Volunteer modal -->
+  <div id="vol-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4 grid place-items-center">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl">
+      <h3 class="text-xl font-semibold text-gray-900 mb-1">Volunteer for <span id="modal-title"></span></h3>
+      <p class="text-sm text-gray-600 mb-4">Share your details and weâ€™ll notify the project team.</p>
+      <form id="vol-form" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-500">Your name</label>
+          <input id="vol-name" class="mt-1 w-full border rounded-lg px-3 py-2" required />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500">Email</label>
+          <input id="vol-email" type="email" class="mt-1 w-full border rounded-lg px-3 py-2" required />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500">Contact number</label>
+          <input id="vol-phone" class="mt-1 w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500">Message (optional)</label>
+          <textarea id="vol-msg" class="mt-1 w-full border rounded-lg px-3 py-2" rows="3"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" id="vol-cancel" class="px-4 py-2 rounded-lg border">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 text-white">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    const sb = createClient("https://zjxxmppahgpxoltdsfaq.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo");
+
+    const q = new URLSearchParams(location.search);
+    const slug = q.get("slug");
+
+    const navAvatar = document.getElementById('nav-avatar');
+    const navName = document.getElementById('nav-name');
+    const navRole = document.getElementById('nav-role');
+
+    const titleEl = document.getElementById('title');
+    const summaryEl = document.getElementById('summary');
+    const aboutEl = document.getElementById('about');
+    const statusPill = document.getElementById('status-pill');
+    const hero = document.getElementById('hero-img');
+    const thumbs = document.getElementById('thumbs');
+    const progBar = document.getElementById('progress-bar');
+    const progText = document.getElementById('progress-text');
+
+    const volBtn = document.getElementById('btn-volunteer');
+    const volNote = document.getElementById('volunteered-note');
+    const volModal = document.getElementById('vol-modal');
+    const volForm = document.getElementById('vol-form');
+    const volCancel = document.getElementById('vol-cancel');
+    const modalTitle = document.getElementById('modal-title');
+    const nameInput = document.getElementById('vol-name');
+    const emailInput = document.getElementById('vol-email');
+    const phoneInput = document.getElementById('vol-phone');
+    const msgInput = document.getElementById('vol-msg');
+
+    const adminBox = document.getElementById('admin-box');
+    const approveBtn = document.getElementById('btn-approve');
+
+    function fmt(d) { try { return new Date(d).toLocaleDateString(); } catch { return 'â€”'; } }
+    function badge(p) {
+      const now = new Date();
+      const s = p.starts_at ? new Date(p.starts_at) : null;
+      const e = p.ends_at ? new Date(p.ends_at) : null;
+      const statusRaw = (p.status||'').toLowerCase();
+      // trust explicit status if given
+      if (statusRaw.includes('complete')) return { label:'Completed', cls:'bg-green-100 text-green-700' };
+      if (statusRaw.includes('progress') || statusRaw.includes('ongoing')) return { label:'In Progress', cls:'bg-yellow-100 text-yellow-700' };
+      if (statusRaw.includes('plan')) return { label:'Planning', cls:'bg-blue-100 text-blue-700' };
+      // fallback to dates
+      if (s && e && s < now && e < now) return { label:'Completed', cls:'bg-green-100 text-green-700' };
+      if (s && e && s < now && e > now) return { label:'In Progress', cls:'bg-yellow-100 text-yellow-700' };
+      if (s && e && s > now && e > now) return { label:'Planning', cls:'bg-blue-100 text-blue-700' };
+      return { label:'In Progress', cls:'bg-yellow-100 text-yellow-700' };
+    }
+
+    function setPill(b) { statusPill.textContent = b.label; statusPill.className = 'px-3 py-1 rounded-full text-xs font-medium ' + b.cls; }
+
+    const { data: { session } } = await sb.auth.getSession();
+    let me = null, role = 'user';
+    if (session) {
+      const { data: prof } = await sb.from('profiles').select('full_name,username,role,avatar_url,email').eq('id', session.user.id).maybeSingle();
+      me = prof || {};
+      role = (prof?.role || 'user');
+      navName.textContent = (prof?.full_name || prof?.username || session.user.email?.split('@')[0] || 'You');
+      navRole.textContent = role;
+      navAvatar.src = prof?.avatar_url || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="%236bbf64"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="28" fill="white">U</text></svg>';
+    }
+
+    // Load project by slug
+    const { data: proj } = await sb.from('projects').select('id,slug,title,summary,about,points_worth,progress,status,is_approved,image_url,thumb_urls,starts_at,ends_at,user_id').eq('slug', slug).maybeSingle();
+    if (!proj) {
+      document.body.innerHTML = '<div class="max-w-3xl mx-auto p-8 text-center">Project not found.</div>';
+      throw new Error('not found');
+    }
+
+    titleEl.textContent = proj.title || 'Untitled';
+    summaryEl.textContent = proj.summary || '';
+    aboutEl.innerHTML = (proj.about || '').replace(/\n/g,'<br/>');
+    modalTitle.textContent = proj.title || 'this project';
+
+    setPill(badge(proj));
+    const pct = Math.max(0, Math.min(100, Number(proj.progress ?? 0)));
+    progBar.style.width = pct + '%';
+    progText.textContent = pct + '% complete';
+
+    const heroSrc = proj.image_url || 'resources/renewable-energy.jpg';
+    hero.src = heroSrc;
+    const thumbsArr = (proj.thumb_urls && Array.isArray(proj.thumb_urls)) ? proj.thumb_urls : [heroSrc];
+    thumbsArr.forEach((t)=>{
+      const img = new Image();
+      img.src = t;
+      img.className = 'w-28 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80';
+      img.addEventListener('click', ()=> { hero.src = t; });
+      thumbs.appendChild(img);
+    });
+
+    // Mark volunteered if exists
+    let hasVolunteered = false;
+    if (session) {
+      const { data: v } = await sb.from('project_volunteers').select('id').eq('project_id', proj.id).eq('user_id', session.user.id).maybeSingle();
+      hasVolunteered = !!v;
+    }
+    if (hasVolunteered) {
+      volNote.classList.remove('hidden');
+      volBtn.textContent = 'âœ… Volunteered';
+      volBtn.disabled = true;
+    }
+
+    function openModal() { volModal.classList.remove('hidden'); }
+    function closeModal() { volModal.classList.add('hidden'); }
+    volBtn.addEventListener('click', ()=>{
+      if (!session) { location.href = 'login.html?returnTo=' + encodeURIComponent(location.pathname + location.search); return; }
+      nameInput.value = me?.full_name || me?.username || '';
+      emailInput.value = session.user.email || '';
+      phoneInput.value = '';
+      msgInput.value = '';
+      openModal();
+    });
+    volCancel.addEventListener('click', closeModal);
+
+    volForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      if (!session) return;
+      const row = {
+        project_id: proj.id,
+        user_id: session.user.id,
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        message: msgInput.value.trim()
+      };
+      const { error } = await sb.from('project_volunteers').insert(row);
+      if (error) { alert('Could not submit: ' + error.message); return; }
+      volNote.classList.remove('hidden');
+      volBtn.textContent = 'âœ… Volunteered';
+      volBtn.disabled = true;
+      // tell listing to refresh
+      localStorage.setItem('gc_volunteer_refresh','1');
+      closeModal();
+    });
+
+    // Admin approve & award
+    if (role === 'admin') {
+      adminBox.classList.remove('hidden');
+      approveBtn.addEventListener('click', async ()=>{
+        if (!confirm('Approve completed project and award points to volunteers?')) return;
+        const { error } = await sb.rpc('approve_project_and_award', { p_project: proj.id, p_approved: true });
+        if (error) { alert('Failed: '+error.message); return; }
+        alert('Approved. Points will be awarded to volunteers.');
+        localStorage.setItem('gc_points_refresh','1');
+      });
+    }
+
+    // Meta line
+    const when = [proj.starts_at? 'Starts '+fmt(proj.starts_at):'', proj.ends_at? 'Ends '+fmt(proj.ends_at):''].filter(Boolean).join(' â€¢ ');
+    const pts = (proj.points_worth ?? 0);
+    document.getElementById('meta-line').textContent = (pts? (pts+' pts â€¢ ') : '') + when;
+  </script>
+  <script src="js/emoji-fix.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+

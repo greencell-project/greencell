@@ -1,0 +1,650 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learning Hub - GreenCell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { display: ['Playfair Display','serif'], body: ['Inter','system-ui','sans-serif'] },
+          colors: {
+            brand: { 50:'#f1fbf4',100:'#e3f7e9',200:'#bff0cf',300:'#94e6b1',400:'#64d88f',500:'#36c971',600:'#22a95a',700:'#166b3b',800:'#115c31',900:'#0d4124' }
+          },
+          boxShadow: { soft: '0 10px 30px rgba(0,0,0,.08)', lift: '0 18px 40px rgba(0,0,0,.14)' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body{font-family:Inter,system-ui,sans-serif;background:radial-gradient(1200px 600px at 10% -10%, #d2f7e3 0%, rgba(255,255,255,0) 60%), radial-gradient(900px 500px at 110% -10%, #e7f5ff 0%, rgba(255,255,255,0) 60%), #ffffff;}
+    .glass{background:rgba(255,255,255,.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.55)}
+    .card{transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; box-shadow:var(--shadow,0 10px 30px rgba(0,0,0,.08));}
+    .card:hover{transform:translateY(-4px); --shadow:0 18px 40px rgba(0,0,0,.14)}
+    .chip{font-size:.78rem;padding:.4rem .75rem;border-radius:999px;border:1px solid #e5e7eb;background:#fff;transition:.2s}
+    .chip.active{background:#166b3b;color:#ecfdf5;border-color:#22a95a}
+    .kpi{display:inline-flex;align-items:center;gap:.45rem;padding:.4rem .65rem;border-radius:999px;background:#ecfdf5;color:#166b3b;font-size:.78rem;border:1px solid #bbf7d0}
+    .skeleton{background:linear-gradient(90deg,#e6f2e9 25%,#f3faf6 37%,#e6f2e9 63%);background-size:400% 100%;animation:shine 1.2s ease infinite}
+    @keyframes shine{0%{background-position:100% 0}100%{background-position:-100% 0}}
+    .nav-link{position:relative;transition:.3s}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:#10B981;transition:width .3s ease}
+    .nav-link:hover::after{width:100%}
+    /* Apply same effect to gc-link used by anchors */
+    .gc-link{position:relative;transition:.3s}
+    .gc-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:#10B981;transition:width .3s ease}
+  .gc-link:hover::after{width:100%}
+  </style>
+  <!-- Icon flicker fix: brand leaf emoji without font load -->
+  <style>
+    #gc-nav .rounded-full.grid.place-content-center.text-white { position: relative; color: transparent; }
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before {
+      content: '\01F331'; /* ?? */
+      color: #fff; position: absolute; inset: 0; display: grid; place-content: center;
+    }
+  </style>
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    /* Keep avatar hidden until populated to avoid guest flash */
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible';});})();</script>
+</head>
+<body class="min-h-screen text-slate-800">
+<nav id="gc-nav" class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center text-white"></div>
+        <span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8 flex-1 justify-center">
+        <a data-link="home" href="index.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Home</a>
+        <a data-link="dashboard" href="dashboard.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Dashboard</a>
+        <a data-link="innovation" href="innovation-lab.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Innovation Lab</a>
+        <a data-link="hub" href="learning-hub.html" class="gc-link font-medium text-green-600">Learning Hub</a>
+        <a data-link="events" href="events.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Events</a>
+        <a data-link="contact" href="contact.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Contact</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative group" id="gc-avatar-wrap">
+          <img id="gc-avatar" alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" />
+          <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden group-hover:block z-50 gc-avatar-menu">
+            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Account Settings</a>
+            <button type="button" data-gc-logout class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+          </div>
+        </div>
+        <div class="leading-tight">
+          <div id="gc-name" class="text-sm font-medium text-gray-800">-</div>
+          <div id="gc-role" class="text-[11px] text-gray-500">-</div>
+        </div>
+        <a id="create-btn" href="create-module.html" class="bg-green-600 text-white px-4 py-2 rounded-full font-medium hover:bg-green-700">Create Module</a>
+        <span id="gc-points" class="hidden text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200"></span>
+      </div>
+    </div>
+  </div>
+</nav>
+<div style="height:64px"></div>
+<script>
+  // No immediate guest fallback; avatar will be revealed after session resolves below.
+</script>
+<!-- no nav DOM reordering needed; markup is already correct -->
+ 
+<!-- Admin-only small reset button (top-right, out of the navbar) -->
+<button id="btn-reset-module-points" title="Reset module impact points"
+        class="hidden fixed top-20 right-4 z-40 px-3 py-1.5 rounded-full text-xs font-medium bg-red-600 text-white border border-red-700 shadow hover:bg-red-700">
+  Reset Module Points
+</button>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const sb = window.sb ?? createClient(
+    "https://zjxxmppahgpxoltdsfaq.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo"
+  );
+  window.sb = sb;
+  try { if (!window.__supabase) window.__supabase = sb; } catch {}
+
+  // Letter avatar from FIRST letter of FULL NAME (fallback)
+  function letterAvatarDataURL(name, size = 64) {
+    const c = document.createElement("canvas"); c.width = c.height = size;
+    const ctx = c.getContext("2d");
+    const t = (name || "User").trim();
+    let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+    ctx.fillStyle = `hsl(${h % 360} 70% 50%)`; ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = "#fff"; ctx.font = `${Math.floor(size * 0.55)}px Inter,Arial`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText((t[0] || "U").toUpperCase(), size / 2, size / 2);
+    return c.toDataURL("image/png");
+  }
+
+  // Resolve uploaded PFP from Supabase Storage (supports public or private buckets)
+  async function resolveAvatarUrl(profile, user, display) {
+    const raw = (profile?.avatar_url ?? "").trim();
+
+    // If already an absolute URL, use it
+    if (raw && /^https?:\/\//i.test(raw)) return raw;
+
+    // If it's a storage path (e.g., 'avatars/uid/file.png'), try public then signed
+    if (raw) {
+      const pub = window.sb.storage.from("avatars").getPublicUrl(raw);
+      if (pub?.data?.publicUrl) return pub.data.publicUrl;
+
+      const { data: signed } = await window.sb.storage.from("avatars").createSignedUrl(raw, 60 * 60 * 24 * 365);
+      if (signed?.signedUrl) return signed.signedUrl;
+    }
+
+    // Fallback: letter avatar from FULL NAME
+    return letterAvatarDataURL(display, 64);
+  }
+
+  (async () => {
+    // highlight "Learning Hub" link
+    document.querySelectorAll(".gc-link").forEach(a => a.classList.remove("text-green-600"));
+    document.querySelector(`[data-link="hub"]`)?.classList.add("text-green-600");
+
+    const nameEl   = document.getElementById("gc-name");
+    const roleEl   = document.getElementById("gc-role");
+    const avatarEl = document.getElementById("gc-avatar");
+    const pill     = document.getElementById("gc-points");
+    const createBtn= document.getElementById("create-btn");
+
+    const { data: { user } } = await sb.auth.getUser();
+
+    if (!user) {
+      // guest view (reveal only after setting values)
+      if (avatarEl) {
+        avatarEl.src = letterAvatarDataURL("Guest", 64);
+        avatarEl.style.visibility = 'visible';
+      }
+      if (nameEl) { nameEl.textContent = "Guest"; nameEl.style.visibility='visible'; }
+      if (roleEl) { roleEl.textContent = "visitor"; roleEl.style.visibility='visible'; }
+      createBtn?.classList.add("hidden");
+      pill?.classList.add("hidden");
+      return;
+    }
+
+    // get profile
+    const { data: p } = await sb
+      .from("profiles")
+      .select("full_name, role, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const display = (p?.full_name && p.full_name.trim())
+      ? p.full_name.trim()
+      : (user.email?.split("@")[0] ?? "User");
+
+    if (nameEl) nameEl.textContent = display;
+    if (roleEl) roleEl.textContent = (p?.role ?? "user");
+
+    // set stable fallback first (prevents flicker), then upgrade to uploaded URL if any
+    if (avatarEl) {
+      avatarEl.src = letterAvatarDataURL(display, 64);
+      avatarEl.style.visibility = 'visible';
+    }
+    try {
+      const url = await resolveAvatarUrl(p, user, display);
+      if (avatarEl) avatarEl.src = url;
+    } catch { /* keep fallback */ }
+
+    // Show Create Module for all signed-in users
+    createBtn?.classList.remove("hidden");
+
+    // Points pill (modules + projects)
+    try {
+      const [modRes, projRes] = await Promise.all([
+        sb.from("module_completions")
+          .select("awarded_points")
+          .eq("user_id", user.id),
+        sb.from("impact_points")
+          .select("points, source, project_id")
+          .eq("user_id", user.id)
+      ]);
+
+      const moduleTotal  = (modRes.data  || []).reduce((s, r) => s + (Number(r.awarded_points) || 0), 0);
+      const projectTotal = (projRes.data || []).reduce((s, r) => s + (Number(r.points)         || 0), 0);
+      const total = moduleTotal + projectTotal;
+
+      if (pill) { pill.textContent = `⭐ ${total} pts`; pill.classList.remove("hidden"); }
+    } catch { /* ignore */ }
+
+  })();
+ </script><script type="module">
+  // Reuse global Supabase client from the first script
+
+  // Letter avatar from FIRST letter of FULL NAME (fallback)
+  function letterAvatarDataURL(name, size = 64) {
+    const c = document.createElement("canvas"); c.width = c.height = size;
+    const ctx = c.getContext("2d");
+    const t = (name || "User").trim();
+    let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+    ctx.fillStyle = `hsl(${h % 360} 70% 50%)`; ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = "#fff"; ctx.font = `${Math.floor(size * 0.55)}px Inter,Arial`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText((t[0] || "U").toUpperCase(), size / 2, size / 2);
+    return c.toDataURL("image/png");
+  }
+
+  // Resolve uploaded PFP from Supabase Storage (supports public or private buckets)
+  async function resolveAvatarUrl(profile, user, display) {
+    const raw = (profile?.avatar_url ?? "").trim();
+
+    // If already an absolute URL, use it
+    if (raw && /^https?:\/\//i.test(raw)) return raw;
+
+    // If it's a storage path (e.g., 'avatars/uid/file.png'), try public then signed
+    if (raw) {
+      const pub = sb.storage.from("avatars").getPublicUrl(raw);
+      if (pub?.data?.publicUrl) return pub.data.publicUrl;
+
+      const { data: signed } = await sb.storage.from("avatars").createSignedUrl(raw, 60 * 60 * 24 * 365);
+      if (signed?.signedUrl) return signed.signedUrl;
+    }
+
+    // Fallback: letter avatar from FULL NAME
+    return letterAvatarDataURL(display, 64);
+  }
+
+  (async () => {
+    // highlight "Learning Hub" link
+    document.querySelectorAll(".gc-link").forEach(a => a.classList.remove("text-green-600"));
+    document.querySelector(`[data-link="hub"]`)?.classList.add("text-green-600");
+
+    const nameEl   = document.getElementById("gc-name");
+    const roleEl   = document.getElementById("gc-role");
+    const avatarEl = document.getElementById("gc-avatar");
+    const pill     = document.getElementById("gc-points");
+    const createBtn= document.getElementById("create-btn");
+
+    const { data: { user } } = await window.sb.auth.getUser();
+
+    if (!user) {
+      // guest view
+      if (avatarEl) avatarEl.src = letterAvatarDataURL("Guest", 64);
+      if (nameEl)   nameEl.textContent = "Guest";
+      if (roleEl)   roleEl.textContent = "visitor";
+      createBtn?.classList.add("hidden");
+      pill?.classList.add("hidden");
+      return;
+    }
+
+    // get profile
+    const { data: p } = await window.sb
+      .from("profiles")
+      .select("full_name, role, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const display = (p?.full_name && p.full_name.trim())
+      ? p.full_name.trim()
+      : (user.email?.split("@")[0] ?? "User");
+
+    if (nameEl) nameEl.textContent = display;
+    if (roleEl) roleEl.textContent = (p?.role ?? "user");
+
+    // set stable fallback first (prevents flicker), then upgrade to uploaded URL if any
+    if (avatarEl) avatarEl.src = letterAvatarDataURL(display, 64);
+    try {
+      const url = await resolveAvatarUrl(p, user, display);
+      if (avatarEl) avatarEl.src = url;
+    } catch { /* keep fallback */ }
+
+    // Show Create Module only for admin or mentor
+    if (["admin", "mentor"].includes(String(p?.role || "").toLowerCase())) {
+      createBtn?.classList.remove("hidden");
+    } else {
+      createBtn?.classList.add("hidden");
+    }
+
+    /* UPDATED: Points pill (modules + projects) */
+    try {
+      const [modRes, projRes] = await Promise.all([
+        window.sb.from("module_completions")
+          .select("awarded_points")
+          .eq("user_id", user.id),
+        window.sb.from("impact_points")
+          .select("points, source, project_id")
+          .eq("user_id", user.id)
+      ]);
+
+      const moduleTotal  = (modRes.data  || []).reduce((s, r) => s + (Number(r.awarded_points) || 0), 0);
+      const projectTotal = (projRes.data || []).reduce((s, r) => s + (Number(r.points)         || 0), 0);
+      const total = moduleTotal + projectTotal;
+
+      if (pill) { pill.textContent = `⭐ ${total} pts`; pill.classList.remove("hidden"); }
+    } catch { /* ignore */ }
+  })();
+</script>
+
+<header class="pt-24 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <div class="absolute right-4 -top-10 w-40 h-40 rounded-full blur-3xl opacity-40 bg-brand-300"></div>
+    <div class="absolute left-10 -bottom-6 w-52 h-52 rounded-full blur-3xl opacity-40 bg-blue-200"></div>
+
+    <div class="rounded-3xl glass p-6 md:p-10 shadow-soft">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div>
+          <h1 class="font-display text-4xl md:text-5xl text-slate-900 leading-tight">Learning Hub</h1>
+          <p class="mt-3 text-slate-600 text-lg">Short, practical modules on sustainability. Watch, apply, and earn points as you go.</p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="kpi">🎓 Beginner &mdash; Advanced</span>
+            <span class="kpi">⏱ 10&ndash;35 min</span>
+            <span class="kpi">⭐ Earn points</span>
+          </div>
+        </div>
+        <div class="bg-white/70 border border-white rounded-2xl p-4 shadow-soft">
+          <div class="flex items-center gap-3">
+            <div class="flex-1 relative">
+              <input id="search" type="text" placeholder="Search modulesâ€¦" class="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-400 transition" />
+            </div>
+            <label class="inline-flex items-center gap-2 select-none whitespace-nowrap text-sm">
+              <input type="checkbox" id="toggle-completed" class="w-4 h-4" checked>
+              <span>Hide completed</span>
+            </label>
+          </div>
+          <div id="chip-row" class="mt-3 flex flex-wrap gap-2">
+            <button class="chip active" data-filter="all">All</button>
+            <button class="chip" data-filter="energy">Energy</button>
+            <button class="chip" data-filter="waste">Waste</button>
+            <button class="chip" data-filter="water">Water</button>
+            <button class="chip" data-filter="beginner">Beginner</button>
+            <button class="chip" data-filter="intermediate">Intermediate</button>
+            <button class="chip" data-filter="advanced">Advanced</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="pb-16">
+  <section class="mt-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-end justify-between mb-4">
+        <h2 class="font-display text-2xl md:text-3xl text-slate-900">All modules</h2>
+      </div>
+      <div id="modules-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-7">
+        <article class="card rounded-2xl overflow-hidden glass"><div class="h-44 w-full skeleton"></div><div class="p-4 space-y-2"><div class="h-5 w-28 skeleton rounded"></div><div class="h-6 w-3/4 skeleton rounded"></div><div class="h-4 w-full skeleton rounded"></div></div></article>
+        <article class="card rounded-2xl overflow-hidden glass"><div class="h-44 w-full skeleton"></div><div class="p-4 space-y-2"><div class="h-5 w-28 skeleton rounded"></div><div class="h-6 w-3/4 skeleton rounded"></div><div class="h-4 w-full skeleton rounded"></div></div></article>
+        <article class="card rounded-2xl overflow-hidden glass"><div class="h-44 w-full skeleton"></div><div class="p-4 space-y-2"><div class="h-5 w-28 skeleton rounded"></div><div class="h-6 w-3/4 skeleton rounded"></div><div class="h-4 w-full skeleton rounded"></div></div></article>
+      </div>
+      <p id="empty-msg" class="hidden mt-4 text-sm text-slate-500">No modules yet.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="border-t border-slate-100 py-8 text-center text-xs text-slate-500">Â© <span id="y"></span> GreenCell</footer>
+
+<script type="module">
+  // Reuse global Supabase client set earlier
+
+  const grid = document.getElementById('modules-grid');
+  const hideCompletedToggle = document.getElementById('toggle-completed');
+  const emptyMsg = document.getElementById('empty-msg');
+  const createBtn = document.getElementById('create-btn');
+  const resetBtn = document.getElementById('btn-reset-module-points');
+  const search = document.getElementById('search');
+  const chips = document.querySelectorAll('#chip-row .chip');
+
+  let completedSet = new Set();
+  let isAdmin = false;
+  let modules = [];
+
+  function fallbackImage(title){
+    let t=(title||'M').toString().trim(); t=t?t[0].toUpperCase():'M';
+    const svg=encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='680'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0%' stop-color='%2322a95a'/><stop offset='100%' stop-color='%23166b3b'/></linearGradient></defs><rect fill='url(%23g)' width='100%' height='100%'/><text x='50%' y='54%' text-anchor='middle' font-family='Inter,Segoe UI' font-size='180' fill='white' opacity='.25'>"
+      +t+
+      "</text></svg>");
+    return 'data:image/svg+xml;charset=utf-8,'+svg;
+  }
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+
+  function dbCardHTML(m){
+    const idStr=String(m.id);
+    const img=m.image_url||fallbackImage(m.title);
+    const detail='module.html?id='+encodeURIComponent(idStr);
+    const tag=m.tag||'general';
+    const isDone=completedSet.has(idStr);
+    const hide=(isDone && hideCompletedToggle && hideCompletedToggle.checked) ? 'hidden' : '';
+    const admin=(isAdmin?('<div class=\"absolute top-3 right-3 flex items-center gap-2>'+
+      '<a href=\"module.html?id='+esc(idStr)+'&edit=1\" class=\"px-2 py-1 rounded-md text-xs bg-white/90 border border-slate-200 hover:bg-emerald-50 hover:border-emerald-300\">Edit</a>'+
+      '</div>') : '');
+    return (`
+      <article class="relative card rounded-2xl overflow-hidden glass border border-white ${hide}" data-id="${esc(idStr)}">
+        ${admin}
+        <a href="${detail}" class="block relative">
+          <img src="${esc(img)}" alt="${esc(m.title)} image" class="h-44 w-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent"></div>
+        </a>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200 border capitalize">${esc(tag)}</span>
+            <div class="text-xs text-slate-500 space-x-3">
+              <span>â± ${m.duration_minutes||0} min</span>
+              <span>ðŸ† ${m.points||0} pts</span>
+            </div>
+          </div>
+          <a href="${detail}" class="block text-lg font-semibold text-slate-900 hover:text-brand-700">${esc(m.title)}</a>
+          <p class="mt-1 text-sm text-slate-600">${esc(m.summary||'')}</p>
+          <div class="mt-3 flex items-center justify-between">
+            <a href="${detail}" class="px-4 py-2 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium shadow-soft">Start</a>
+            ${m.level?`<span class="text-xs text-slate-500">${esc(m.level)}</span>`:''}
+          </div>
+        </div>
+      </article>
+    `);
+  }
+
+  async function fetchUserAndCompletions(){
+    const sess = await window.sb.auth.getUser();
+    const user = (sess && sess.data) ? sess.data.user : null;
+    if(!user) return;
+
+    const prof = await window.sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
+    const p = prof && prof.data ? prof.data : null;
+    if(p && (p.role==='admin')){
+      isAdmin = true;
+      createBtn?.classList.remove('hidden');
+      resetBtn?.classList.remove('hidden');
+    } else {
+      createBtn?.classList.add('hidden');
+      resetBtn?.classList.add('hidden');
+    }
+
+    const rows = await window.sb.from('module_completions').select('module_id,awarded_points').eq('user_id', user.id);
+    const data = rows && rows.data ? rows.data : [];
+    completedSet = new Set(data.map(r=>String(r.module_id)));
+
+    try {
+      const last = localStorage.getItem('gc_last_uncompleted');
+      if (last) { completedSet.delete(String(last)); localStorage.removeItem('gc_last_uncompleted'); }
+    } catch (_){}
+  }
+
+  async function loadModules(){
+    const res = await window.sb.from('modules')
+      .select('id,title,summary,image_url,duration_minutes,points,level,tag,created_at')
+      .order('created_at',{ascending:false});
+    modules = (res && res.data) ? res.data : [];
+
+    if(!modules.length){
+      grid.innerHTML='';
+      emptyMsg.classList.remove('hidden');
+      return;
+    }
+    emptyMsg.classList.add('hidden');
+    grid.innerHTML = modules.map(dbCardHTML).join('');
+  }
+
+  function applyVisibility(){
+    const showHidden = !(hideCompletedToggle && hideCompletedToggle.checked);
+    document.querySelectorAll('[data-id]').forEach(card=>{
+      const id=card.getAttribute('data-id');
+      const done=completedSet.has(String(id));
+      card.classList.toggle('hidden', !!(done && !showHidden));
+    });
+  }
+
+  let activeFilter = 'all';
+  chips.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      chips.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter || 'all';
+      const q=(search.value||'').toLowerCase();
+      const cards=[...document.querySelectorAll('[data-id]')];
+      cards.forEach(card=>{
+        const title=card.querySelector('a.block.text-lg')?.textContent.toLowerCase()||'';
+        const sum=card.querySelector('p.text-sm')?.textContent.toLowerCase()||'';
+        const tag=card.querySelector('span.capitalize')?.textContent.toLowerCase()||'';
+        const level=card.querySelector('.text-xs.text-slate-500')?.textContent.toLowerCase()||'';
+        const pass = (activeFilter==='all' || tag===activeFilter || level===activeFilter)
+          && (q ? (title.includes(q)||sum.includes(q)) : true);
+        card.style.display = pass ? '' : 'none';
+      });
+    });
+  });
+  search.addEventListener('input',()=>{
+    const q=(search.value||'').toLowerCase();
+    const cards=[...document.querySelectorAll('[data-id]')];
+    cards.forEach(card=>{
+      const title=card.querySelector('a.block.text-lg')?.textContent.toLowerCase()||'';
+      const sum=card.querySelector('p.text-sm')?.textContent.toLowerCase()||'';
+      const pass = q ? (title.includes(q)||sum.includes(q)) : true;
+      if(pass) card.style.removeProperty('display'); else card.style.display='none';
+    });
+  });
+
+  hideCompletedToggle?.addEventListener('change', applyVisibility);
+
+  // Admin: reset all module-completion awarded points (zeros only; preserves completion records)
+  resetBtn?.addEventListener('click', async () => {
+    if (!isAdmin) return;
+    const ok = confirm('This will set awarded_points = 0 for all module completions for all users. Continue?');
+    if (!ok) return;
+    try {
+      resetBtn.disabled = true;
+      resetBtn.textContent = 'Resetting...';
+      const { error } = await window.sb.rpc('admin_reset_module_points');
+      if (error) { alert('Reset failed: ' + (error.message || 'Unknown error')); }
+      else { alert('All module impact points have been reset to 0.'); }
+    } catch (e) {
+      alert('Reset failed: ' + (e?.message || e));
+    } finally {
+      resetBtn.disabled = false;
+      resetBtn.textContent = 'Reset Module Impact Points';
+    }
+  });
+
+  document.getElementById('y').textContent = new Date().getFullYear();
+  await fetchUserAndCompletions();
+  await loadModules();
+  applyVisibility();
+</script>
+<footer class="bg-gray-900 text-white py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center space-x-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center">
+            <span class="text-white font-bold text-lg">ðŸŒ±</span>
+          </div>
+          <span class="display-font text-2xl font-bold">GreenCell</span>
+        </div>
+        <p class="text-gray-400 leading-relaxed">
+          Empowering youth worldwide to create sustainable solutions and drive environmental change through education and collaboration.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-semibold text-lg mb-4">Platform</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li><a href="dashboard.html" class="hover:text-green-400 transition-colors">Dashboard</a></li>
+          <li><a href="innovation-lab.html" class="hover:text-green-400 transition-colors">Innovation Lab</a></li>
+          <li><a href="learning-hub.html" class="hover:text-green-400 transition-colors">Learning Hub</a></li>
+          <li><a href="events.html" class="hover:text-green-400 transition-colors">Events</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-semibold text-lg mb-4">Resources</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li><a href="#" class="hover:text-green-400 transition-colors">SDG Guide</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Project Templates</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Best Practices</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Impact Reports</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-semibold text-lg mb-4">Connect</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li><a href="#" class="hover:text-green-400 transition-colors">Community Forum</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Newsletter</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Social Media</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+      <p>&copy; 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.</p>
+    </div>
+  </div>
+</footer>
+<script>
+  (function(){
+    function bindNavLogout(){
+      document.querySelectorAll('[data-gc-logout]').forEach(function(btn){
+        btn.addEventListener('click', async function(e){
+          e.preventDefault();
+          try {
+            if (window.Auth && window.Auth.signOut) { await window.Auth.signOut(); return; }
+            if (window.__supabase && window.__supabase.auth && window.__supabase.auth.signOut) { await window.__supabase.auth.signOut(); }
+            if (window.sb && window.sb.auth && window.sb.auth.signOut) { await window.sb.auth.signOut(); }
+            else if (window.navSb && window.navSb.auth && window.navSb.auth.signOut) { await window.navSb.auth.signOut(); }
+            else if (window.sbDash && window.sbDash.auth && window.sbDash.auth.signOut) { await window.sbDash.auth.signOut(); }
+            else if (window.supabase && window.supabase.auth && window.supabase.auth.signOut) { await window.supabase.auth.signOut(); }
+          } catch (err) { /* ignore */ }
+          location.href = 'login.html';
+        });
+      });
+    }
+    bindNavLogout();
+    function bindAvatarMenu(){
+      document.querySelectorAll('#gc-avatar-wrap').forEach(function(wrap){
+        var panel = wrap.querySelector('.gc-avatar-menu');
+        if (!panel) return;
+        var hideTo = null;
+        function show(){ if (hideTo) clearTimeout(hideTo); panel.classList.remove('hidden'); }
+        function hide(){ hideTo = setTimeout(function(){ panel.classList.add('hidden'); }, 350); }
+        wrap.addEventListener('mouseenter', show);
+        wrap.addEventListener('mouseleave', hide);
+        var img = wrap.querySelector('#gc-avatar');
+        if (img){ img.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); panel.classList.toggle('hidden'); }); }
+        panel.addEventListener('mouseenter', show);
+        panel.addEventListener('mouseleave', hide);
+      });
+      document.addEventListener('click', function(){
+        document.querySelectorAll('.gc-avatar-menu').forEach(function(p){ p.classList.add('hidden'); });
+      });
+    }
+    bindAvatarMenu();
+  })();
+</script>
+<script src="js/emoji-fix.js"></script>
+  
+</body></html>
+
+
+
+
+
+
+
+
+

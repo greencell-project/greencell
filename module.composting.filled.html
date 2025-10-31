@@ -1,0 +1,502 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Module - GreenCell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:Inter,system-ui,sans-serif;background:#fff}
+    .display{font-family:'Playfair Display',serif}
+    .kpi{display:inline-flex;align-items:center;gap:.45rem;padding:.4rem .65rem;border-radius:999px;background:#ecfdf5;color:#166b3b;font-size:.78rem;border:1px solid #bbf7d0}
+    .glass{background:rgba(255,255,255,.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.55)}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid #e2e8f0;border-radius:.75rem;padding:.5rem .75rem}
+    .btn:hover{background:#f8fafc}
+    .field{display:grid;gap:.35rem}
+    .field label{font-size:.8rem;color:#475569}
+    .field input,.field textarea, .field select{border:1px solid #e2e8f0;border-radius:.75rem;padding:.6rem .75rem}
+  </style>
+  <style>
+    .nav-link{position:relative;transition:.3s}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:#10B981;transition:width .3s ease}
+    .nav-link:hover::after{width:100%}
+  </style>
+  <style>
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#16a34a;color:#fff;padding:.6rem .9rem;border-radius:.75rem;box-shadow:0 10px 30px rgba(0,0,0,.15);opacity:0;pointer-events:none;transition:opacity .25s, transform .25s}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  </style>
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+<body><div id="gc-toast" class="toast" role="status" aria-live="polite"></div> class="min-h-screen text-slate-800">
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center"><span class="text-white font-bold text-lg">ðŸŒ±</span></div>
+          <span class="display text-2xl font-bold text-gray-900">GreenCell</span>
+        </div>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="index.html"          class="nav-link text-gray-700 hover:text-green-600 font-medium">Home</a>
+          <a href="dashboard.html"      class="nav-link text-gray-700 hover:text-green-600 font-medium">Dashboard</a>
+          <a href="innovation-lab.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Innovation Lab</a>
+          <a href="learning-hub.html"   class="nav-link text-gray-700 hover:text-green-600 font-medium">Learning Hub</a>
+          <a href="events.html"         class="nav-link text-gray-700 hover:text-green-600 font-medium">Events</a>
+          <a href="contact.html"        class="nav-link text-gray-700 hover:text-green-600 font-medium">Contact</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <script>
+    (function(){
+      const path = location.pathname.toLowerCase();
+      document.querySelectorAll('nav .nav-link').forEach(a=>{
+        const href = (a.getAttribute('href')||'').toLowerCase();
+        const file = href.split('/').pop();
+        if (file && path.endsWith(file)) a.classList.add('text-green-600');
+      });
+    })();
+  </script>
+
+  <main class="pt-24 pb-16">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-3 gap-8">
+      <article class="lg:col-span-2">
+        <div class="mb-4 flex items-center gap-2">
+          <a href="learning-hub.html" class="btn text-sm"><span>â†</span><span>Back to Learning Hub</span></a>
+          <button id="edit-toggle" class="hidden btn text-sm">âœï¸ Edit</button>
+          <span id="edit-hint" class="text-xs text-slate-500 hidden">You are in edit mode</span>
+        </div>
+
+        <img id="cover" alt="Module cover" class="w-full h-64 md:h-80 object-cover rounded-2xl border border-slate-100 shadow"/>
+        <h1 id="title" class="display text-3xl mt-6 text-slate-900">Module</h1>
+        <p id="summary" class="mt-2 text-slate-600"></p>
+
+        <div class="mt-6 grid sm:grid-cols-3 gap-3">
+          <div id="kpi-duration" class="kpi hidden">â± â€”</div>
+          <div id="kpi-points" class="kpi hidden">ðŸ† â€”</div>
+          <div id="kpi-level" class="kpi hidden">ðŸŽš â€”</div>
+        </div>
+
+        <div id="learn-wrap" class="mt-10 hidden">
+          <h2 class="display text-2xl text-slate-900 mb-2">What youâ€™ll learn</h2>
+          <ul id="learn-list" class="list-disc list-inside space-y-1 text-slate-700"></ul>
+        </div>
+
+        <div id="prereq-wrap" class="mt-8 hidden">
+          <h2 class="display text-2xl text-slate-900 mb-2">Prerequisites</h2>
+          <ul id="prereq-list" class="list-disc list-inside space-y-1 text-slate-700"></ul>
+        </div>
+
+        <div id="outcomes-wrap" class="mt-8 hidden">
+          <h2 class="display text-2xl text-slate-900 mb-2">Outcomes</h2>
+          <ul id="outcomes-list" class="list-disc list-inside space-y-1 text-slate-700"></ul>
+        </div>
+
+        <div class="mt-10">
+          <h2 class="display text-2xl text-slate-900 mb-2">Overview</h2>
+          <div id="details" class="prose prose-slate max-w-none"></div>
+        </div>
+
+        <div id="resources-wrap" class="mt-10 hidden">
+          <h2 class="display text-2xl text-slate-900 mb-2">Resources</h2>
+          <ul id="resources" class="list-disc list-inside space-y-1 text-slate-700"></ul>
+        </div>
+
+        <div id="admin-editor" class="hidden mt-10 glass rounded-2xl p-5">
+          <h2 class="display text-2xl text-slate-900 mb-3">Admin Editor</h2>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="field"><label>Title</label><input id="f-title" type="text" /></div>
+            <div class="field"><label>Slug (auto from title if blank)</label><input id="f-slug" type="text" placeholder="auto"/></div>
+            <div class="field"><label>Summary</label><input id="f-summary" type="text"/></div>
+            <div class="field"><label>Tag</label><select id="f-tag"><option value="">â€”</option><option>energy</option><option>waste</option><option>water</option><option>general</option></select></div>
+            <div class="field"><label>Level</label><select id="f-level"><option value="">â€”</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+            <div class="field"><label>Duration (minutes)</label><input id="f-duration" type="number" min="0"/></div>
+            <div class="field"><label>Points</label><input id="f-points" type="number" min="0"/></div>
+            <div class="field"><label>YouTube URL</label><input id="f-youtube" type="url" placeholder="https://..."/></div>
+            <div class="field md:col-span-2"><label>Image URL</label><input id="f-image" type="url" placeholder="https://..."/></div>
+            <div class="field md:col-span-2"><label>Overview (paragraphs separated by blank lines)</label><textarea id="f-details" rows="6"></textarea></div>
+            <div class="field md:col-span-2"><label>What youâ€™ll learn (one per line)</label><textarea id="f-learn" rows="5"></textarea></div>
+            <div class="field md:col-span-2"><label>Prerequisites (one per line)</label><textarea id="f-prereq" rows="4"></textarea></div>
+            <div class="field md:col-span-2"><label>Outcomes (one per line)</label><textarea id="f-outcomes" rows="4"></textarea></div>
+            <div class="field md:col-span-2"><label>Resources (one URL per line)</label><textarea id="f-resources" rows="4"></textarea></div>
+          </div>
+          <div class="mt-4 flex gap-3">
+            <button id="btn-fill-defaults" class="px-4 py-2 rounded-lg border bg-white hover:bg-emerald-50">Fill with defaults</button>
+            <button id="btn-save" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">Save</button>
+            <button id="btn-cancel" class="px-4 py-2 rounded-lg border">Cancel</button>
+            <button id="btn-delete" class="ml-auto px-4 py-2 rounded-lg border border-red-300 text-red-700 hover:bg-red-50">Delete</button>
+          </div>
+          <p id="save-status" class="mt-2 text-sm text-slate-600"></p>
+        </div>
+      </article>
+
+      <aside class="lg:col-span-1">
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span id="tag-pill" class="hidden text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 capitalize"></span>
+            <span id="fact-duration" class="hidden text-xs text-slate-500"></span>
+            <span id="fact-points" class="hidden text-xs text-slate-500"></span>
+            <span id="fact-level" class="hidden text-xs text-slate-500"></span>
+          </div>
+          <a id="start" class="block text-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3">Open video</a>
+          <button id="complete" class="mt-3 w-full rounded-xl border border-emerald-200 text-emerald-800 hover:bg-emerald-50 py-2">Mark as completed</button>
+          <p id="status" class="mt-2 text-sm text-slate-600"></p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module">
+    function showToast(msg){
+      const t = document.getElementById('gc-toast');
+      if(!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(()=> t.classList.remove('show'), 1400);
+    }
+    function setCompleteState(done){
+      const btn = document.getElementById('complete');
+      if(!btn) return;
+      if(done){
+        btn.textContent = 'Mark as uncompleted';
+        btn.classList.add('border-emerald-300','text-emerald-800');
+      }else{
+        btn.textContent = 'Mark as completed';
+        btn.classList.add('border-emerald-300','text-emerald-800');
+      }
+    }
+
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    const sb = createClient(
+      "https://zjxxmppahgpxoltdsfaq.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo"
+    );
+
+    const params = new URLSearchParams('slug=composting-101-for-apartments&edit=1');
+    const idParam = params.get('id');
+    const rawSlug = (params.get('slug') || params.get('title') || '').trim();
+    const wantEdit = params.get('edit') === '1';
+
+    const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+
+    const CANON = {
+      'solar-basics': 'Solar Basics',
+      'composting-101-for-apartments': 'Composting 101 for Apartments',
+      'rainwater-harvesting-starter': 'Rainwater Harvesting Starter'
+    };
+
+    function guessKey() {
+      if (rawSlug) {
+        const s = norm(rawSlug);
+        if (CANON[s]) return CANON[s];
+        if (s.includes('compost') && s.includes('apartment')) return CANON['composting-101-for-apartments'];
+        if (s.includes('solar') && s.includes('basic')) return CANON['solar-basics'];
+        if (s.includes('rain') && s.includes('harvest')) return CANON['rainwater-harvesting-starter'];
+      }
+      const ref = document.referrer.toLowerCase();
+      if (ref.includes('compost')) return CANON['composting-101-for-apartments'];
+      if (ref.includes('solar')) return CANON['solar-basics'];
+      if (ref.includes('rainwater')) return CANON['rainwater-harvesting-starter'];
+      return null;
+    }
+
+    function letterImage(title){
+      const t = (title||'M').toString().trim()[0]?.toUpperCase() || 'M';
+      const svg = encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='680'>
+          <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+            <stop offset='0%' stop-color='%2322a95a'/><stop offset='100%' stop-color='%23166b3b'/>
+          </linearGradient></defs>
+          <rect fill='url(%23g)' width='100%' height='100%'/>
+          <text x='50%' y='54%' text-anchor='middle' font-family='Inter,Segoe UI' font-size='180' fill='white' opacity='.25'>${t}</text>
+        </svg>`
+      );
+      return 'data:image/svg+xml;charset=utf-8,'+svg;
+    }
+
+    const FALLBACKS = {
+      'Solar Basics': { title:'Solar Basics: How PV Works', summary:'Understand how sunlight turns into electricity and what â€œkWhâ€ actually means.', tag:'energy', level:'Beginner', duration_minutes:14, points:50, youtube_url:'', what_you_learn:[ 'PV effect basics and how a cell becomes a panel','Reading a panel datasheet (Voc, Isc, Pmax, temperature coeffs)','Series vs. parallel strings; how voltage/current add up','Roof orientation, tilt, shading and simple production estimates','Safety: DC isolation, fusing and basic PPE'].join('\n'), prerequisites:['Basic arithmetic/algebra','A compass app (phone) for azimuth/tilt checks'].join('\n'), outcomes:['Estimate the size of a ~1 kW rooftop system for your site','Build a simple USB solar phone charger safely'].join('\n'), details:['This module demystifies solar photovoltaics: how cells and modules work, how current/voltage behave in series vs parallel, and what a kWh really represents so you can compare systems confidently.','We then cover tilt/azimuth, shading effects, safety best practices, and a quick method to judge whether solar suits your home or school.'].join('\n\n'), resources_links:['https://pvwatts.nrel.gov/','https://www.nrel.gov/docs/fy16osti/65388.pdf'].join('\n'), fallback_image_url:'https://images.unsplash.com/photo-1516542076529-1ea3854896e1?q=80&w=1600&auto=format&fit=crop' },
+      'Composting 101 for Apartments': { title:'Composting 101 for Apartments', summary:'No backyard? Learn odor-free kitchen composting and the science behind it.', tag:'waste', level:'Beginner', duration_minutes:12, points:40, youtube_url:'', what_you_learn:[ 'Aerobic vs. anaerobic composting & how odor happens','Browns vs. greens ratios and moisture control','Setting up a compact bin; bokashi vs. vermicompost','Pest prevention and carbon sources you already have'].join('\n'), prerequisites:['A ventilated corner/under-sink space (~10 L)','Newspaper/cardboard and a tight-fitting lid'].join('\n'), outcomes:['Set up a 10 L indoor compost bin that doesnâ€™t smell','Harvest finished compost in ~4â€“6 weeks (with worms/bokashi)'].join('\n'), details:[ 'You donâ€™t need a backyard to compost. This module compares three apartment-friendly options and explains the science behind smell so you can keep things clean and neighbor-friendly.','We cover feedstock prep, layer ratios, troubleshooting (too wet/dry, flies), and safe uses for finished compost or bokashi pre-compost.' ].join('\n\n'), resources_links:[ 'https://www.epa.gov/recycle/composting-home','https://www.masterclass.com/articles/composting-101' ].join('\n'), fallback_image_url:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1600&auto=format&fit=crop' },
+      'Rainwater Harvesting Starter': { title:'Rainwater Harvesting Starter', summary:'An intro to rooftop harvesting components, first-flush, and basic sizing.', tag:'water', level:'Intermediate', duration_minutes:16, points:60, youtube_url:'', what_you_learn:[ 'Safe roof catchment materials; debris & first-flush design','Sizing a storage barrel from precipitation data','Simple filtration & disinfection options','Overflow management and safe uses for non-potable water'].join('\n'), prerequisites:['Tape measure, calculator, and local rainfall data'].join('\n'), outcomes:[ 'Plan a basic rain barrel system with first-flush','Estimate annual collection volume and overflow routing' ].join('\n'), details:[ 'We cover roof catchment requirements, first-flush diverters, and storage options. Youâ€™ll size a system for a small rooftop, understand filtration options, and know safest use-cases for non-potable water.', 'The module also highlights key safety checks and local regulation considerations.' ].join('\n\n'), resources_links:[ 'https://www.harvesth2o.com/first_flush.shtml','https://www.cdc.gov/healthywater/emergency/drinking/private/rainwater-collection.html' ].join('\n'), fallback_image_url:'https://images.unsplash.com/photo-1496024840928-4c417adf211d?q=80&w=1600&auto=format&fit=crop' }
+    };
+
+    function asLines(s){ return String(s||'').split(/\r?\n/).map(x=>x.replace(/^\s*[-â€¢]\s*/,'').trim()).filter(Boolean); }
+    function renderList(ul, text){ const lines=asLines(text); ul.innerHTML=''; lines.forEach(l=>{const li=document.createElement('li'); li.textContent=l; ul.appendChild(li)}); return lines.length; }
+    function renderParagraphs(el, text){
+      el.innerHTML='';
+      const parts = String(text||'').split(/\n{2,}/).filter(Boolean);
+      if(!parts.length){ el.innerHTML='<p class="text-slate-500">No overview added yet.</p>'; return; }
+      for(const p of parts){ const elp=document.createElement('p'); elp.textContent=p.replace(/\n/g,' '); el.appendChild(elp); }
+    }
+    function updateKPIs({duration_minutes, points, level}){
+      const kd=document.getElementById('kpi-duration'), kp=document.getElementById('kpi-points'), kl=document.getElementById('kpi-level');
+      const fd=document.getElementById('fact-duration'), fp=document.getElementById('fact-points'), fl=document.getElementById('fact-level');
+      if(duration_minutes){ kd.textContent=`â± ${duration_minutes} min`; kd.classList.remove('hidden'); fd.textContent=`â± ${duration_minutes} min`; fd.classList.remove('hidden');}
+      if(points){ kp.textContent=`ðŸ† ${points} pts`; kp.classList.remove('hidden'); fp.textContent=`ðŸ† ${points} pts`; fp.classList.remove('hidden');}
+      if(level){ kl.textContent=`ðŸŽš ${level}`; kl.classList.remove('hidden'); fl.textContent=`ðŸŽš ${level}`; fl.classList.remove('hidden');}
+    }
+
+    async function fetchFromDB({id, title}) {
+      try{
+        if(id){
+          const r = await sb.from('modules').select('*').eq('id', id).maybeSingle();
+          if(r.data) return r.data;
+        }
+        if(title){
+          let r = await sb.from('modules').select('*').eq('title', title).order('created_at',{ascending:false}).limit(1);
+          if(r.data && r.data[0]) return r.data[0];
+          r = await sb.from('modules').select('*').ilike('title', `%${title}%`).order('created_at',{ascending:false}).limit(1);
+          if(r.data && r.data[0]) return r.data[0];
+        }
+      }catch(_){}
+      return null;
+    }
+
+    function mergeFallback(row, keyTitle){
+      if(!keyTitle || !FALLBACKS[keyTitle]) return row;
+      const pack = FALLBACKS[keyTitle];
+      const out = {...(row || {})};
+      for(const [k,v] of Object.entries(pack)){
+        const cur = out[k];
+        const isBlank = (cur === null || cur === undefined || (typeof cur === 'string' && cur.trim()===''));
+        if(isBlank) out[k] = v;
+      }
+      if(!out.image_url) out.image_url = pack.fallback_image_url || letterImage(pack.title);
+      return out;
+    }
+
+    async function getRole(){
+      const s = await sb.auth.getUser();
+      if(!s?.data?.user) return null;
+      const r = await sb.from('profiles').select('role').eq('id', s.data.user.id).maybeSingle();
+      return r?.data?.role || null;
+    }
+
+    function fillForm(d){
+      const g = (id)=>document.getElementById(id);
+      g('f-title').value = d.title||'';
+      g('f-slug').value = (d.slug || norm(d.title||''));
+      g('f-summary').value = d.summary||'';
+      g('f-tag').value = d.tag||'';
+      g('f-level').value = d.level||'';
+      g('f-duration').value = d.duration_minutes||'';
+      g('f-points').value = d.points||'';
+      g('f-youtube').value = d.youtube_url||'';
+      g('f-image').value = d.image_url||'';
+      g('f-details').value = d.details||'';
+      g('f-learn').value = d.what_you_learn||'';
+      g('f-prereq').value = d.prerequisites||'';
+      g('f-outcomes').value = d.outcomes||'';
+      g('f-resources').value = d.resources_links||'';
+    }
+
+    function readForm(){
+      const g = (id)=>document.getElementById(id).value;
+      let slug = g('f-slug').trim() || norm(g('f-title'));
+      slug = norm(slug);
+      return {
+        title: g('f-title').trim(),
+        slug,
+        summary: g('f-summary'),
+        tag: g('f-tag') || null,
+        level: g('f-level') || null,
+        duration_minutes: Number(g('f-duration'))||null,
+        points: Number(g('f-points'))||null,
+        youtube_url: g('f-youtube'),
+        image_url: g('f-image'),
+        details: g('f-details'),
+        what_you_learn: g('f-learn'),
+        prerequisites: g('f-prereq'),
+        outcomes: g('f-outcomes'),
+        resources_links: g('f-resources')
+      };
+    }
+
+    async function saveToDB(existingId){
+      const payload = readForm();
+      let res;
+      if(existingId){
+        res = await sb.from('modules').update(payload).eq('id', existingId).select('id').maybeSingle();
+      }else{
+        const existing = await sb.from('modules').select('id').eq('title', payload.title).order('created_at',{ascending:false}).limit(1);
+        if(existing.data && existing.data[0]){
+          res = await sb.from('modules').update(payload).eq('id', existing.data[0].id).select('id').maybeSingle();
+        }else{
+          res = await sb.from('modules').insert(payload).select('id').maybeSingle();
+        }
+      }
+      if(res.error) throw res.error;
+      return res.data?.id;
+    }
+
+    async function init(){
+      /* __FILL_DEFAULTS_WIRED__ */
+      const role = await getRole();
+      const canEdit = true;
+
+      const guessedTitle = 'Composting 101 for Apartments';
+      const row = null;
+      const data = FALLBACKS[guessedTitle];
+
+      if(!data){
+        document.getElementById('status').textContent = 'Module not found.';
+        document.getElementById('cover').src = letterImage('M');
+        return;
+      }
+
+      const img = data.image_url || (guessedTitle && FALLBACKS[guessedTitle]?.fallback_image_url) || letterImage(data.title||'M');
+      const cover = document.getElementById('cover'); cover.src = img; cover.alt = (data.title||'Module')+' cover';
+      document.getElementById('title').textContent   = data.title || guessedTitle || 'Module';
+      document.getElementById('summary').textContent = data.summary || '';
+      if(data.tag){ const t=document.getElementById('tag-pill'); t.textContent=data.tag; t.classList.remove('hidden'); }
+      updateKPIs({ duration_minutes: data.duration_minutes, points: data.points, level: data.level });
+      const renderList = (ulId, text) => { const ul=document.getElementById(ulId); ul.innerHTML=''; String(text||'').split(/\r?\n/).filter(Boolean).forEach(x=>{const li=document.createElement('li'); li.textContent=x; ul.appendChild(li)}); return ul.childElementCount; };
+      const renderParagraphs = (elId, text)=>{ const el=document.getElementById(elId); el.innerHTML=''; const parts=String(text||'').split(/\n{2,}/).filter(Boolean); if(!parts.length){ el.innerHTML='<p class="text-slate-500">No overview added yet.</p>'; return; } parts.forEach(p=>{ const q=document.createElement('p'); q.textContent=p.replace(/\n/g,' '); el.appendChild(q); }); };
+      renderParagraphs('details', data.details);
+      if(renderList('learn-list', data.what_you_learn))  document.getElementById('learn-wrap').classList.remove('hidden');
+      if(renderList('prereq-list', data.prerequisites))  document.getElementById('prereq-wrap').classList.remove('hidden');
+      if(renderList('outcomes-list', data.outcomes))     document.getElementById('outcomes-wrap').classList.remove('hidden');
+      const links = String(data.resources_links||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      const resList = document.getElementById('resources'); resList.innerHTML='';
+      links.forEach(u=>{ const li=document.createElement('li'); const a=document.createElement('a'); a.href=u; a.target='_blank'; a.rel='noopener'; a.textContent=u; li.appendChild(a); resList.appendChild(li); });
+      if(links.length) document.getElementById('resources-wrap').classList.remove('hidden');
+      // Fill-with-defaults button (for static modules)
+      const fillBtn = document.getElementById('btn-fill-defaults');
+      if (fillBtn) {
+        if (!guessedTitle || !FALLBACKS[guessedTitle]) {
+          fillBtn.classList.add('opacity-50','pointer-events-none');
+          fillBtn.title = 'Defaults available only for static modules';
+        } else {
+          fillBtn.addEventListener('click', () => {
+            const pack = FALLBACKS[guessedTitle];
+            fillForm({
+              title: pack.title,
+              slug: (pack.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''),
+              summary: pack.summary,
+              tag: pack.tag,
+              level: pack.level,
+              duration_minutes: pack.duration_minutes,
+              points: pack.points,
+              youtube_url: pack.youtube_url,
+              image_url: pack.fallback_image_url,
+              details: pack.details,
+              what_you_learn: pack.what_you_learn,
+              prerequisites: pack.prerequisites,
+              outcomes: pack.outcomes,
+              resources_links: pack.resources_links
+            });
+            showToast('Default content loaded');
+          });
+        }
+      }
+
+      const start=document.getElementById('start');
+      if(data.youtube_url && /^https?:\/\//i.test(String(data.youtube_url))) start.href = data.youtube_url;
+      else start.classList.add('pointer-events-none','opacity-50');
+
+      // Initialize completion button state for current user
+      try{
+        const sess = await sb.auth.getUser();
+        const uid = sess?.data?.user?.id;
+        if(uid && data.id){
+          const have = await sb.from('module_completions').select('user_id').eq('module_id', data.id).eq('user_id', uid).limit(1);
+          setCompleteState(!!(have.data && have.data.length));
+        } else { setCompleteState(false); }
+      }catch(_){ setCompleteState(false); }
+
+
+      document.getElementById('complete').addEventListener('click', async ()=>{
+        try{
+          if(!data.id){ document.getElementById('status').textContent='Saved locally.'; return; }
+          const sess = await sb.auth.getUser();
+          const uid = sess?.data?.user?.id;
+          if(!uid){ document.getElementById('status').textContent='Please sign in.'; return; }
+          const have = await sb.from('module_completions').select('user_id').eq('module_id', data.id).eq('user_id', uid).limit(1);
+          if(have.data && have.data.length){
+            await sb.from('module_completions').delete().eq('module_id', data.id).eq('user_id', uid);
+            document.getElementById('status').textContent='Marked as uncompleted.';
+            setCompleteState(false);
+            showToast('Marked as uncompleted');
+            try{ localStorage.setItem('gc_last_uncompleted', String(data.id)); }catch(_){}
+          }else{
+            await sb.from('module_completions').insert({ module_id: data.id, user_id: uid, awarded_points: data.points||0 });
+            document.getElementById('status').textContent='Marked as completed.';
+            setCompleteState(true);
+            showToast('Marked as completed');
+          }
+        }catch(e){
+          console.error(e);
+          document.getElementById('status').textContent='Saved locally (DB restricted).';
+        }
+      });
+
+      const editBtn = document.getElementById('edit-toggle');
+      const editor = document.getElementById('admin-editor');
+      const completeBtn = document.getElementById('complete');
+      const editHint = document.getElementById('edit-hint');
+
+      if(canEdit){
+        editBtn.classList.remove('hidden');
+        fillForm(data);
+        if(wantEdit){ editor.classList.remove('hidden'); editHint.classList.remove('hidden'); completeBtn.classList.add('hidden'); }
+        editBtn.addEventListener('click', ()=>{
+          editor.classList.toggle('hidden');
+          editHint.classList.toggle('hidden');
+          completeBtn.classList.toggle('hidden');
+        });
+
+        document.getElementById('btn-cancel').addEventListener('click', ()=>{
+          editor.classList.add('hidden'); editHint.classList.add('hidden'); completeBtn.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-save').addEventListener('click', async ()=>{
+          const status = document.getElementById('save-status');
+          status.textContent = 'Savingâ€¦';
+          try{
+            const id = await saveToDB(data.id);
+            status.textContent = 'Saved! Redirectingâ€¦';
+            setTimeout(()=>{ location.href = 'module.html?id='+encodeURIComponent(id); }, 600);
+          }catch(e){
+            console.error(e);
+            status.textContent = 'Could not save: '+(e?.message||e);
+          }
+        });
+
+        const delBtn = document.getElementById('btn-delete');
+        if (data.id) {
+          delBtn.addEventListener('click', async ()=>{
+            const name = data.title || 'this module';
+            if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+            try {
+              const res = await sb.from('modules').delete().eq('id', data.id);
+              if (res.error) throw res.error;
+              location.href = 'learning-hub.html#deleted';
+            } catch (e) {
+              const status = document.getElementById('save-status');
+              status.textContent = 'Delete failed: ' + (e?.message || e);
+            }
+          });
+        } else {
+          delBtn.disabled = true;
+          delBtn.title = 'Save first to create this module before deleting.';
+          delBtn.classList.add('opacity-50','pointer-events-none');
+        }
+      }
+    }
+
+    init();
+  </script>
+  <script src="js/emoji-fix.js"></script>
+</body>
+</html>
+
+
+
+
+

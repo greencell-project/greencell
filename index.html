@@ -1,0 +1,1368 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GreenCell - Leading for a Sustainable Tomorrow</title>
+
+  <!-- Libraries / CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/splitting@1.0.6/dist/splitting.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+
+  <!-- JS libs (only what you use on this page) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+  <script src="https://unpkg.com/splitting@1.0.6/dist/splitting.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+
+<style>
+  :root{
+    --primary-green:#2D5A27;
+    --secondary-green:#4A7C59;
+    --accent-earth:#8B4513;
+    --clean-blue:#4A90A4;
+    --neutral-gray:#6B7280;
+    --success-green:#10B981;
+    --warning-orange:#F59E0B
+  }
+  body{
+    font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg,#f0f9f0 0%,#ffffff 100%);
+    background-attachment:fixed
+  }
+  .hero-bg{
+    background:url('resources/hero-sustainability.jpg') center/cover no-repeat;
+    position:relative
+  }
+  .hero-bg::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:rgba(45,90,39,.3)
+  }
+  .display-font{font-family:'Playfair Display',serif}
+  .accent-font{font-family:'Space Grotesk',sans-serif}
+  .sdg-card{
+    transition:all .3s ease;
+    transform-style:preserve-3d
+  }
+  .sdg-card:hover{
+    transform:translateY(-8px) rotateY(5deg);
+    box-shadow:0 20px 40px rgba(45,90,39,.2)
+  }
+  .project-card{transition:all .3s ease}
+  .project-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 15px 30px rgba(0,0,0,.1)
+  }
+  .btn-primary{
+    background:var(--primary-green);
+    transition:all .3s ease
+  }
+  .btn-primary:hover{
+    background:var(--secondary-green);
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(45,90,39,.3)
+  }
+  .stats-counter{
+    font-size:3rem;
+    font-weight:700;
+    color:var(--primary-green)
+  }
+  .reveal-element{
+    opacity:0;
+    transform:translateY(30px)
+  }
+  .reveal-element.revealed{
+    opacity:1;
+    transform:translateY(0);
+    transition:all .4s ease
+  }
+  .floating-particle{
+    position:absolute;
+    width:4px;
+    height:4px;
+    background:var(--success-green);
+    border-radius:50%;
+    opacity:.6
+  }
+  .nav-link{
+    position:relative;
+    transition:all .3s ease
+  }
+  .nav-link::after{
+    content:'';
+    position:absolute;
+    bottom:-4px;
+    left:0;
+    width:0;
+    height:2px;
+    background:var(--success-green);
+    transition:width .3s ease
+  }
+  .nav-link:hover::after{width:100%}
+  /* Apply the same hover underline to gc-link anchors */
+  .gc-link{position:relative;transition:all .3s ease}
+  .gc-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--success-green);transition:width .3s ease}
+  .gc-link:hover::after{width:100%}
+  .impact-chart{height:300px}
+  .pattern-bg{
+    background:url('resources/backgrounds/pattern-bg.jpg') repeat;
+    opacity:.05
+  }
+
+  /* === faster pop-in ========================================== */
+  #sdg-toggle-btn.reveal-element{transition-delay:.1s !important}
+  #projects h2.display-font.reveal-element{transition-delay:.15s !important}
+</style>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<!-- Equal height cards for Featured Impact Projects -->
+<style id="equal-cards-css">
+  #projects-carousel .splide__slide { height: 100%; }
+  #projects-carousel .project-card { display: flex; flex-direction: column; height: 100%; }
+  #projects-carousel .project-card img { height: 16rem; object-fit: cover; width: 100%; flex: 0 0 auto; }
+  #projects-carousel .project-card .card-body { flex: 1 1 auto; display: flex; flex-direction: column; }
+  #projects-carousel .project-card .card-footer { margin-top: auto; }
+</style>
+
+
+<!-- Equal height cards (grid) for Featured Impact Projects -->
+<style id="equal-cards-css-v2">
+  #projects-carousel .splide__slide { height: 100%; }
+  #projects-carousel .project-card {
+    display: grid;
+    grid-template-rows: auto 1fr auto; /* image / body / footer */
+    height: 100%;
+  }
+  #projects-carousel .project-card img {
+    height: 16rem; /* 256px */
+    width: 100%;
+    object-fit: cover;
+  }
+  #projects-carousel .project-card .card-body { padding: 2rem; }
+  #projects-carousel .project-card .desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 3.6em; /* about 3 lines */
+    margin-bottom: 1rem;
+  }
+  #projects-carousel .project-card .card-footer {
+    padding: 0 2rem 2rem 2rem;
+    margin-top: 0; /* grid handles pushing footer */
+  }
+</style>
+
+
+<style id="featured-live-cards-css">
+  #projects-carousel .splide__list { align-items: stretch; }
+  #projects-carousel .splide__slide { height: 100%; }
+  #projects-carousel .project-card { display:flex; flex-direction:column; height:100%; background:#fff; }
+  #projects-carousel .project-card > img { width:100%; height:16rem; object-fit:cover; display:block; }
+  #projects-carousel .project-card .card-body { flex:1 1 auto; display:flex; flex-direction:column; }
+  #projects-carousel .project-card .desc {
+    display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; -webkit-line-clamp:4; min-height:4.8em;
+  }
+  #projects-carousel .project-card .card-footer { margin-top:auto; }
+  #projects-carousel .project-card .card-footer img { display:none !important; } /* names only */
+</style>
+
+<!-- Icon flicker fixes: ensure stable emoji without font loads -->
+<style>
+  /* Brand leaf in navbar */
+  #gc-nav .rounded-full.grid.place-content-center.text-white { position: relative; color: transparent; }
+  #gc-nav .rounded-full.grid.place-content-center.text-white::before {
+    content: '\01F331'; /* 🌱 */
+    color: #fff; position: absolute; inset: 0; display: grid; place-content: center;
+  }
+</style>
+
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+<body>
+<!-- Navigation -->
+<nav id="gc-nav" class="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full grid place-content-center text-white"></div>
+        <span class="font-[Playfair_Display] text-2xl font-bold text-gray-900">GreenCell</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a data-link="home" href="index.html" class="gc-link font-medium text-green-600">Home</a>
+        <a data-link="dashboard" href="dashboard.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Dashboard</a>
+        <a data-link="innovation" href="innovation-lab.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Innovation Lab</a>
+        <a data-link="hub" href="learning-hub.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Learning Hub</a>
+        <a data-link="events" href="events.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Events</a>
+        <a data-link="contact" href="contact.html" class="gc-link font-medium text-gray-700 hover:text-green-600">Contact</a>
+      </div>
+      <div class="flex items-center gap-3 nav-right">
+        <div class="relative group" id="gc-avatar-wrap">
+          <img id="gc-avatar" alt="Profile" class="w-8 h-8 rounded-full border border-gray-200 cursor-pointer" />
+          <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden group-hover:block z-50 gc-avatar-menu">
+            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Account Settings</a>
+            <button type="button" data-gc-logout class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+          </div>
+        </div>
+        <div class="leading-tight">
+          <div id="gc-name" class="text-sm font-medium text-gray-800">�?"</div>
+          <div id="gc-role" class="text-[11px] text-gray-500">�?"</div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+<div style="height:64px"></div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const SUPABASE_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+  const navSb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Expose for global logout handlers
+  try { window.navSb = navSb; if (!window.__supabase) window.__supabase = navSb; } catch(_) {}
+
+  function letterAvatarFromFullName(name, size=64){
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const t = (name || 'User').trim();
+    const ch = (t ? t[0] : 'U').toUpperCase();
+    let h=0; for(let i=0;i<t.length;i++) h=(h*31+t.charCodeAt(i))>>>0;
+    ctx.fillStyle = `hsl(${h%360} 70% 55%)`;
+    ctx.fillRect(0,0,size,size);
+    ctx.fillStyle = '#fff';
+    ctx.font = `${Math.floor(size*0.55)}px Inter, Arial`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(ch, size/2, size/2);
+    return c.toDataURL('image/png');
+  }
+
+  async function resolveAvatarUrl(profile, user, display){
+    const raw = (profile?.avatar_url || '').trim();
+    if (raw && /^https?:\/\//i.test(raw)) return raw;
+    if (raw){
+      const { data: pub } = navSb.storage.from('avatars').getPublicUrl(raw);
+      if (pub?.publicUrl) return pub.publicUrl;
+      const { data: signed } = await navSb.storage.from('avatars').createSignedUrl(raw, 60*60*24*365);
+      if (signed?.signedUrl) return signed.signedUrl;
+    }
+    return letterAvatarFromFullName(display, 64);
+  }
+
+  function markActive(){
+    const path = location.pathname.toLowerCase();
+    const map = [['dashboard','dashboard'],['innovation','innovation'],['learning-hub','hub'],['events','events'],['contact','contact']];
+    let name = 'home';
+    for (const [frag, key] of map){ if (path.includes(frag)) { name = key; break; } }
+    document.querySelectorAll('.gc-link').forEach(a => a.classList.remove('text-green-600'));
+    document.querySelector(`.gc-link[data-link="${name}"]`)?.classList.add('text-green-600');
+  }
+
+  async function initNav(){
+    markActive();
+    const nameEl  = document.getElementById('gc-name');
+    const roleEl  = document.getElementById('gc-role');
+    const avatar  = document.getElementById('gc-avatar');
+
+    const { data: { user } } = await navSb.auth.getUser();
+    if (!user){
+      nameEl.textContent = 'Guest';
+      roleEl.textContent = 'visitor';
+      avatar.src = letterAvatarFromFullName('Guest');
+      return;
+    }
+
+    const { data: profile } = await navSb
+      .from('profiles')
+      .select('full_name, role, avatar_url, username')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const full = (profile?.full_name || '').trim() || (user.email?.split('@')[0] ?? 'User');
+    nameEl.textContent = full;
+    roleEl.textContent = (profile?.role || 'user');
+
+    const url = await resolveAvatarUrl(profile, user, full);
+    avatar.decoding = 'async';
+    avatar.referrerPolicy = 'no-referrer';
+    avatar.src = url;
+    avatar.onerror = () => { avatar.src = letterAvatarFromFullName(full); };
+  }
+  initNav();
+</script>
+ 
+<script>
+  (function(){
+    function bindNavLogout(){
+      document.querySelectorAll('[data-gc-logout]').forEach(function(btn){
+        btn.addEventListener('click', async function(e){
+          e.preventDefault();
+          try {
+            if (window.Auth && window.Auth.signOut) { await window.Auth.signOut(); return; }
+            if (window.__supabase && window.__supabase.auth && window.__supabase.auth.signOut) { await window.__supabase.auth.signOut(); }
+            if (window.navSb && window.navSb.auth && window.navSb.auth.signOut) { await window.navSb.auth.signOut(); }
+            else if (window.sb && window.sb.auth && window.sb.auth.signOut) { await window.sb.auth.signOut(); }
+            else if (window.sbDash && window.sbDash.auth && window.sbDash.auth.signOut) { await window.sbDash.auth.signOut(); }
+            else if (window.supabase && window.supabase.auth && window.supabase.auth.signOut) { await window.supabase.auth.signOut(); }
+          } catch (err) { /* ignore */ }
+          location.href = 'login.html';
+        });
+      });
+    }
+    function bindAvatarMenu(){
+      document.querySelectorAll('#gc-avatar-wrap').forEach(function(wrap){
+        var panel = wrap.querySelector('.gc-avatar-menu');
+        if (!panel) return;
+        var hideTo = null;
+        function show(){ if (hideTo) clearTimeout(hideTo); panel.classList.remove('hidden'); }
+        function hide(){ hideTo = setTimeout(function(){ panel.classList.add('hidden'); }, 350); }
+        wrap.addEventListener('mouseenter', show);
+        wrap.addEventListener('mouseleave', hide);
+        var img = wrap.querySelector('#gc-avatar');
+        if (img){
+          img.addEventListener('click', function(e){
+            e.preventDefault(); e.stopPropagation();
+            if (panel.classList.contains('hidden')) show(); else panel.classList.add('hidden');
+          });
+        }
+        panel.addEventListener('mouseenter', show);
+        panel.addEventListener('mouseleave', hide);
+      });
+      document.addEventListener('click', function(){
+        document.querySelectorAll('.gc-avatar-menu').forEach(function(p){ p.classList.add('hidden'); });
+      });
+    }
+    bindNavLogout();
+    bindAvatarMenu();
+  })();
+</script>
+<!-- ===== /UNIVERSAL NAVBAR ===== -->
+
+
+
+  <!-- Hero -->
+  <section id="home" class="hero-bg min-h-screen flex items-center relative overflow-hidden">
+    <div id="particles-container" class="absolute inset-0"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="text-white">
+          <h1 class="display-font text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+            Leading for a <span class="text-green-300" id="typed-text"></span>
+          </h1>
+          <p class="text-xl lg:text-2xl mb-8 leading-relaxed opacity-90">
+            Empowering youth to drive sustainable change through collaborative innovation, 
+            education, and action-oriented projects that align with the UN Sustainable Development Goals.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button class="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg">Start Your Journey</button>
+            <button class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-green-800 transition-all duration-300">Explore Projects</button>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
+            <h3 class="display-font text-2xl font-bold text-white mb-6">Global Impact Stats</h3>
+            <div class="space-y-6">
+              <div class="flex justify-between items-center">
+                <span class="text-white/80">Active Projects</span>
+                <span class="stats-counter text-green-300" data-target="2847">0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-white/80">Students Engaged</span>
+                <span class="stats-counter text-green-300" data-target="15600">0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-white/80">Schools Worldwide</span>
+                <span class="stats-counter text-green-300" data-target="892">0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-white/80">CO2 Reduced (tons)</span>
+                <span class="stats-counter text-green-300" data-target="1250">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SDG Overview -->
+  <section class="py-20 relative">
+  <div class="pattern-bg absolute inset-0"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="text-center mb-16 reveal-element">
+      <h2 class="display-font text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Aligning with Global Goals</h2>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Every project and learning module connects directly to the United Nations Sustainable Development Goals, creating measurable impact for a better world.
+      </p>
+    </div>
+
+    <!-- One grid with 17 cards -->
+    <div id="sdg-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <!-- 1â€“8 visible -->
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="1">
+        <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">1</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">No Poverty</h3>
+        <p class="text-sm text-gray-600 text-center">End poverty in all its forms everywhere</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="2">
+        <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">2</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Zero Hunger</h3>
+        <p class="text-sm text-gray-600 text-center">End hunger, achieve food security</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="3">
+        <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">3</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Good Health</h3>
+        <p class="text-sm text-gray-600 text-center">Ensure healthy lives and well-being</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="4">
+        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">4</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Quality Education</h3>
+        <p class="text-sm text-gray-600 text-center">Inclusive education for all</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="5">
+        <div class="w-16 h-16 bg-red-400 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">5</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Gender Equality</h3>
+        <p class="text-sm text-gray-600 text-center">Achieve gender equality</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="6">
+        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">6</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Clean Water</h3>
+        <p class="text-sm text-gray-600 text-center">Water and sanitation for all</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="7">
+        <div class="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">7</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Clean Energy</h3>
+        <p class="text-sm text-gray-600 text-center">Affordable renewable energy</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal-element" data-sdg="8">
+        <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">8</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Decent Work</h3>
+        <p class="text-sm text-gray-600 text-center">Economic growth and employment</p>
+      </div>
+
+      <!-- 9â€“16 hidden initially -->
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="9">
+        <div class="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">9</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Industry & Innovation</h3>
+        <p class="text-sm text-gray-600 text-center">Resilient infrastructure and innovation</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="10">
+        <div class="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">10</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Reduced Inequalities</h3>
+        <p class="text-sm text-gray-600 text-center">Reduce inequality within and among countries</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="11">
+        <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">11</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Sustainable Cities</h3>
+        <p class="text-sm text-gray-600 text-center">Make cities inclusive, safe, resilient</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="12">
+        <div class="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">12</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Responsible Consumption</h3>
+        <p class="text-sm text-gray-600 text-center">Ensure sustainable consumption and production</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="13">
+        <div class="w-16 h-16 bg-green-700 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">13</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Climate Action</h3>
+        <p class="text-sm text-gray-600 text-center">Take urgent action to combat climate change</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="14">
+        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">14</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Life Below Water</h3>
+        <p class="text-sm text-gray-600 text-center">Conserve and sustainably use oceans</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="15">
+        <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">15</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Life on Land</h3>
+        <p class="text-sm text-gray-600 text-center">Protect, restore and promote ecosystems</p>
+      </div>
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden" data-sdg="16">
+        <div class="w-16 h-16 bg-blue-700 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">16</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Peace & Justice</h3>
+        <p class="text-sm text-gray-600 text-center">Promote peaceful and inclusive societies</p>
+      </div>
+
+      <!-- 17 centered on its own row -->
+      <div class="sdg-card bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hidden lg:col-span-4 place-self-center" data-sdg="17">
+        <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-4 mx-auto"><span class="text-white font-bold text-xl">17</span></div>
+        <h3 class="font-semibold text-center text-gray-900 mb-2">Partnerships</h3>
+        <p class="text-sm text-gray-600 text-center">Strengthen global partnerships</p>
+      </div>
+    </div>
+
+    <!-- SDG toggle button -->
+    <div class="text-center mt-12 reveal-element">
+      <button id="sdg-toggle-btn" type="button" class="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg">
+        Explore All 17 SDGs
+      </button>
+    </div>
+  </div>
+
+  <!-- Toggle logic -->
+  <script>
+  (() => {
+    const btn   = document.getElementById('sdg-toggle-btn');
+    const grid  = document.getElementById('sdg-grid');
+    if (!btn || !grid) return;
+    const hiddenCards = grid.querySelectorAll('.sdg-card.hidden');
+    let expanded = false;
+
+    btn.addEventListener('click', () => {
+      expanded = !expanded;
+      hiddenCards.forEach(card => {
+        card.classList.toggle('hidden', !expanded);
+        if (expanded) card.classList.add('reveal-element','revealed');
+      });
+      btn.textContent = expanded ? 'Show fewer SDGs' : 'Explore All 17 SDGs';
+    });
+  })();
+  </script>
+</section>
+
+  <!-- Featured Projects -->
+  <section class="py-20 bg-gray-50" id="projects">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16 reveal-element">
+        <h2 class="display-font text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Featured Impact Projects</h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          Discover innovative sustainability projects created by students and mentors from around the world, making real environmental impact.
+        </p>
+      </div>
+
+      <!-- Splide carousel -->
+      <div class="splide" id="projects-carousel">
+        <div class="splide__track">
+          <ul class="splide__list">
+            <!-- =====  NEW CARD 1  ===== -->
+            <li class="splide__slide">
+              <a href="innovation-lab.html?project=recycling"
+                 class="block project-card bg-white rounded-3xl overflow-hidden shadow-lg cursor-pointer outline-none"
+                 aria-label="Open Campus Recycling Revolution project page">
+                <img src="resources/recycling-project.jpg" alt="Recycling Initiative" class="w-full h-64 object-cover">
+                <div class="card-body">
+                  <div class="flex items-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">SDG 12 & 13</span>
+                    <span class="ml-auto text-sm text-gray-500">2 weeks ago</span>
+                  </div>
+                  <h3 class="display-font text-2xl font-bold text-gray-900 mb-3">Campus Recycling Revolution</h3>
+                  <p class="text-gray-600 mb-4 desc">
+                    Comprehensive recycling program implementing waste sorting, educational workshops, and monthly challenges to reduce campus waste by 60%.
+                  </p>
+                  <div class="flex items-center justify-between card-footer">
+                    <div class="flex items-center space-x-2">
+                      <img src="resources/student-1.jpg" alt="Student" class="w-8 h-8 rounded-full">
+                      <span class="text-sm text-gray-600">by Emma Chen</span>
+                    </div>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>ðŸ‘¥ 24 participants</span>
+                      <span>ðŸ† 150 points</span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </li>
+
+            <!-- =====  NEW CARD 2  ===== -->
+            <li class="splide__slide">
+              <a href="innovation-lab.html?project=solar"
+                 class="block project-card bg-white rounded-3xl overflow-hidden shadow-lg cursor-pointer outline-none"
+                 aria-label="Open Solar Learning Lab project page">
+                <img src="resources/renewable-energy.jpg" alt="Renewable Energy" class="w-full h-64 object-cover">
+                <div class="card-body">
+                  <div class="flex items-center mb-4">
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">SDG 7 & 9</span>
+                    <span class="ml-auto text-sm text-gray-500">1 month ago</span>
+                  </div>
+                  <h3 class="display-font text-2xl font-bold text-gray-900 mb-3">Solar Learning Lab</h3>
+                  <p class="text-gray-600 mb-4 desc">
+                    Hands-on renewable energy education program teaching students to build and maintain solar panel systems for school energy needs.
+                  </p>
+                  <div class="flex items-center justify-between card-footer">
+                    <div class="flex items-center space-x-2">
+                      <img src="resources/mentor-1.jpg" alt="Mentor" class="w-8 h-8 rounded-full">
+                      <span class="text-sm text-gray-600">by Dr. Sarah Kim</span>
+                    </div>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>ðŸ‘¥ 18 participants</span>
+                      <span>ðŸ† 200 points</span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </li>
+
+            <!-- =====  NEW CARD 3  ===== -->
+            <li class="splide__slide">
+              <a href="innovation-lab.html?project=urban"
+                 class="block project-card bg-white rounded-3xl overflow-hidden shadow-lg cursor-pointer outline-none"
+                 aria-label="Open Urban Food Forest project page">
+                <img src="resources/community-garden.jpg" alt="Community Garden" class="w-full h-64 object-cover">
+                <div class="card-body">
+                  <div class="flex items-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">SDG 2 & 15</span>
+                    <span class="ml-auto text-sm text-gray-500">3 weeks ago</span>
+                  </div>
+                  <h3 class="display-font text-2xl font-bold text-gray-900 mb-3">Urban Food Forest</h3>
+                  <p class="text-gray-600 mb-4 desc">
+                    Community garden project promoting sustainable agriculture, biodiversity, and food security while teaching organic farming techniques.
+                  </p>
+                  <div class="flex items-center justify-between card-footer">
+                    <div class="flex items-center space-x-2">
+                      <img src="resources/student-2.jpg" alt="Student" class="w-8 h-8 rounded-full">
+                      <span class="text-sm text-gray-600">by Marcus Johnson</span>
+                    </div>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>ðŸ‘¥ 35 participants</span>
+                      <span>ðŸ† 180 points</span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <!-- /Splide -->
+    </div>
+  </section>
+
+  <!-- Impact Visualization -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16 reveal-element">
+        <h2 class="display-font text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Measurable Global Impact</h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">Track real-time progress toward sustainability goals with our comprehensive analytics and impact measurement tools.</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="reveal-element">
+          <div id="impact-chart" class="impact-chart bg-white rounded-3xl shadow-lg p-8"></div>
+        </div>
+        <div class="space-y-8 reveal-element">
+          <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4"><span class="text-green-600 text-xl">ðŸŒ±</span></div>
+              <div><h3 class="font-bold text-gray-900">Environmental Impact</h3><p class="text-gray-600">1,250 tons CO2 reduced annually</p></div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-green-500 h-3 rounded-full progress-bar" data-progress="78" style="width:0%"></div></div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4"><span class="text-blue-600 text-xl">ðŸ‘¥</span></div>
+              <div><h3 class="font-bold text-gray-900">Youth Engagement</h3><p class="text-gray-600">15,600 students actively participating</p></div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-blue-500 h-3 rounded-full progress-bar" data-progress="89" style="width:0%"></div></div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4"><span class="text-purple-600 text-xl">ðŸŽ“</span></div>
+              <div><h3 class="font-bold text-gray-900">Education Reach</h3><p class="text-gray-600">892 schools worldwide engaged</p></div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-purple-500 h-3 rounded-full progress-bar" data-progress="65" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Swipe-able Call-to-Action -->
+  <section class="py-20 bg-gradient-to-br from-green-600 to-green-800 overflow-hidden">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="relative flex items-center" style="height: 280px">
+        <div id="cta-text" class="w-full flex-shrink-0 grid place-content-center text-center transition-transform duration-500 ease-in-out">
+          <h2 class="display-font text-4xl lg:text-5xl font-bold text-white mb-6">Ready to Create Impact?</h2>
+          <p class="text-xl text-green-100 mb-8 max-w-2xl mx-auto">Join thousands of young change-makers worldwide who are already creating sustainable solutions for their communities and the planet.</p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="contact.html" class="bg-white text-green-800 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition text-center">Start Your First Project</a>
+            <a href="contact.html" class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-green-800 transition text-center">Join as Mentor</a>
+          </div>
+        </div>
+
+        <div id="cta-form" class="w-full flex-shrink-0 absolute inset-0 opacity-0 translate-x-full pointer-events-none transition-transform duration-500 ease-in-out">
+          <div class="grid place-content-center h-full">
+            <form onsubmit="handleSubmit(event)" class="bg-white/90 backdrop-blur rounded-2xl p-8 shadow-xl w-full max-w-md">
+              <h3 class="text-2xl font-bold text-green-800 mb-4">Tell us about yourself</h3>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input required class="w-full mb-4 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Jane Doe">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input required type="email" class="w-full mb-4 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="jane@example.com">
+              <label class="block text-sm font-medium text-gray-700 mb-1">I want toâ€¦</label>
+              <select required class="w-full mb-5 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="" disabled selected>Choose one</option>
+                <option>Start a project</option>
+                <option>Become a mentor</option>
+              </select>
+              <div class="flex gap-3">
+                <button type="submit" class="flex-1 bg-green-700 text-white py-2 rounded-full font-semibold hover:bg-green-800 transition">Send</button>
+                <button type="button" onclick="hideForm()" class="flex-1 border border-green-700 text-green-700 py-2 rounded-full font-semibold hover:bg-green-50 transition">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA script -->
+  <script>
+    const textPanel = document.getElementById('cta-text');
+    const formPanel = document.getElementById('cta-form');
+    function showForm(){ textPanel.classList.add('-translate-x-full'); formPanel.classList.remove('translate-x-full','opacity-0'); formPanel.classList.add('pointer-events-auto'); }
+    function hideForm(){ textPanel.classList.remove('-translate-x-full'); formPanel.classList.add('translate-x-full','opacity-0'); formPanel.classList.remove('pointer-events-auto'); }
+    function handleSubmit(e){ e.preventDefault(); alert('Thanks! Weâ€™ll be in touch soon.'); hideForm(); }
+  </script>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center"><span class="text-white font-bold text-lg">ðŸŒ±</span></div>
+            <span class="display-font text-2xl font-bold">GreenCell</span>
+          </div>
+          <p class="text-gray-400 leading-relaxed">Empowering youth worldwide to create sustainable solutions and drive environmental change through education and collaboration.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Platform</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="dashboard.html" class="hover:text-green-400 transition-colors">Dashboard</a></li>
+            <li><a href="innovation-lab.html" class="hover:text-green-400 transition-colors">Innovation Lab</a></li>
+            <li><a href="learning-hub.html" class="hover:text-green-400 transition-colors">Learning Hub</a></li>
+            <li><a href="events.html" class="hover:text-green-400 transition-colors">Events</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Resources</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="#" class="hover:text-green-400 transition-colors">SDG Guide</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Project Templates</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Best Practices</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Impact Reports</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg mb-4">Connect</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="#" class="hover:text-green-400 transition-colors">Community Forum</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Newsletter</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Social Media</a></li>
+            <li><a href="#" class="hover:text-green-400 transition-colors">Contact Us</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <p>&copy; 2024 GreenCell Platform. Empowering sustainable futures through youth innovation.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Your main JS (loads once, deferred) -->
+  <script src="main.js" defer></script>
+
+  <!-- Click-to-open section wiring (in case main.js doesn't have it yet) -->
+  
+<script>
+  (function(){
+    // Guard: ensure Supabase UMD is available
+    if (!window.supabase || !window.supabase.createClient) {
+      console.warn("Supabase UMD not loaded; skipping live projects.");
+      return;
+    }
+    const SUPABASE_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function esc(s){ return String(s ?? '').replace(/[&<>"']/g, (c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[c])); }
+    function timeAgo(iso){
+      try{
+        const t = new Date(iso || Date.now()); const s = Math.floor((Date.now() - t.getTime())/1000);
+        if (s < 60) return 'just now'; const m = Math.floor(s/60); if (m < 60) return m+' min ago';
+        const h = Math.floor(m/60); if (h < 24) return h+' hour'+(h>1?'s':'')+' ago';
+        const d = Math.floor(h/24); if (d < 30) return d+' day'+(d>1?'s':'')+' ago';
+        const mo = Math.floor(d/30); if (mo < 12) return mo+' month'+(mo>1?'s':'')+' ago';
+        const y = Math.floor(mo/12); return y+' year'+(y>1?'s':'')+' ago';
+      }catch{return 'â€”'}
+    }
+    
+ function boolish(v){ return v===true || v==='true' || v===1 || v==='1'; }
+ function isCompleted(p){
+  try{
+    if (!p) return false;
+    const fields = [p.status, p.phase, p.state, p.stage, p.status_label, p.statusText, p.progress_status];
+    const s = fields.map(x=>String(x||'').toLowerCase()).join(' ');
+    if (/(^|\b)(complete|completed|done|finished|closed|ended)(\b|$)/.test(s)) return true;
+    if (p.is_completed !== undefined && boolish(p.is_completed)) return true;
+    if (p.completed !== undefined && boolish(p.completed)) return true;
+    const endRaw = p.ends_at || p.endsAt || p.end_date || p.endDate;
+    if (endRaw){ const end = new Date(endRaw); if (!Number.isNaN(+end) && end.getTime() <= Date.now()) return true; }
+    const pc = Number(p.progress ?? p.completion ?? p.percent_complete ?? p.percent ?? -1);
+    if (!Number.isNaN(pc) && pc >= 100) return true;
+  }catch(e){}
+  return false;
+ }
+    function coverFromTitle(title,w=1200,h=400){
+      try{
+        const c = document.createElement('canvas'); c.width=w; c.height=h;
+        const ctx=c.getContext('2d');
+        let hash=0; for (const ch of (title||'Project')) hash=(hash*31+ch.charCodeAt(0))>>>0;
+        ctx.fillStyle=`hsl(${hash%360} 40% 35%)`; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='rgba(255,255,255,0.1)'; for(let i=0;i<8;i++){ ctx.beginPath(); ctx.arc((hash*i*13)%w,(hash*i*29)%h,(hash*i*7)%50+30,0,Math.PI*2); ctx.fill(); }
+        ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.textBaseline='middle';
+        let size=48; const txt=(title||'Project').slice(0,40); const x=48,y=h/2, maxW=w-96;
+        do{ ctx.font=`bold ${size}px Inter,Arial`; size-=2; } while (ctx.measureText(txt).width > maxW && size>16);
+        ctx.fillText(txt,x,y);
+        return c.toDataURL('image/png');
+      }catch{return ''}
+    }
+
+    function run(){
+      const list=document.querySelector('#projects-carousel .splide__list');
+      if (!list) return;
+
+      function addNotice(t){
+        const li=document.createElement('li'); li.className='splide__slide';
+        li.innerHTML = '<div class="bg-white rounded-3xl shadow-lg p-10 h-64 flex items-center justify-center text-center text-gray-600">'+ t +'</div>';
+        list.appendChild(li);
+      }
+
+      (async()=>{
+        // try to attach session first (helps when logged in)
+        try { await sb.auth.getSession(); } catch {}
+
+        const sel = 'id, slug, title, summary, status, is_approved, is_awarded, sdg, created_at, starts_at, ends_at, points_worth';
+        let rows=[], err=null;
+        try{
+          const r = await sb.from('projects').select(sel).eq('is_approved', true);
+          rows = (r && r.data) || []; err = r.error || null;
+        }catch(e){ err=e; }
+
+        if (err){
+          console.warn('Featured projects query failed:', err);
+          addNotice('Could not load live projects (policy/network).');
+          return;
+        }
+        if (!rows.length){
+          addNotice('No approved projects yet.');
+          return;
+        }
+
+// Only include projects that are currently in progress
+rows = rows.filter(p => {
+  const fields = [p?.status, p?.phase, p?.state, p?.stage, p?.status_label, p?.statusText, p?.progress_status];
+  const s = fields.map(x=>String(x||'')).join(' ').toLowerCase();
+  const statusInProg = /(\bin\s*progress\b|progress|ongoing|active|live)/.test(s);
+  let dateInProg = false;
+  try {
+    const st = p.starts_at || p.startsAt;
+    const en = p.ends_at || p.endsAt;
+    if (st && en) {
+      const sd = new Date(st), ed = new Date(en);
+      if (!Number.isNaN(+sd) && !Number.isNaN(+ed)) {
+        const now = Date.now();
+        dateInProg = (now >= sd.getTime() && now <= ed.getTime());
+      }
+    } else if (st && !en) {
+      const sd = new Date(st);
+      if (!Number.isNaN(+sd)) dateInProg = (Date.now() >= sd.getTime());
+    }
+  } catch {}
+  // Must be in progress by status or by dates
+  if (!(statusInProg || dateInProg)) return false;
+  // Still exclude awarded/archived/canceled/ended just in case
+  if (boolish(p.is_awarded)) return false;
+  if (isCompleted(p)) return false;
+  if (/(archive|archived|cancel|canceled|cancelled)/.test(s)) return false;
+  return true;
+});
+if (!rows.length) { addNotice('No in‑progress projects to feature yet.'); return; }
+
+
+        // Get volunteer counts
+        const ids = rows.map(r=>r.id);
+        let vcMap = {};
+        try{
+          const vr = await sb.from('project_volunteers').select('project_id').in('project_id', ids);
+          (vr.data||[]).forEach(v => { vcMap[v.project_id] = (vcMap[v.project_id]||0) + 1; });
+        }catch(e){ console.warn('Volunteer counts failed', e); }
+
+        // Build slides
+        const slides = rows.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0)).map(p=>{
+          const href = 'innovation-lab.html?slug='+ encodeURIComponent(p.slug || p.id);
+          const img  = coverFromTitle(p.title);
+          const sdg  = prettySDG(p.sdg);
+          const when = timeAgo(p.created_at || p.starts_at);
+          const ppl  = vcMap[p.id] || 0;
+          const pts  = Number(p.points_worth || 0);
+          return (
+            '<li class="splide__slide">\n' +
+            '  <a href="'+href+'" class="block project-card bg-white rounded-3xl overflow-hidden shadow-lg cursor-pointer outline-none" aria-label="'+esc(p.title)+'">\n' +
+            '    <img src="'+img+'" alt="'+esc(p.title)+'" class="w-full h-64 object-cover" loading="lazy">\n' +
+            '    <div class="card-body">\n' +
+            '      <div class="flex items-center mb-4">\n' +
+            '        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">'+esc(sdg)+'</span>\n' +
+            '        <span class="ml-auto text-sm text-gray-500">'+esc(when)+'</span>\n' +
+            '      </div>\n' +
+            '      <h3 class="display-font text-2xl font-bold text-gray-900 mb-3">'+esc(p.title)+'</h3>\n' +
+            '      <p class="text-gray-600 mb-4 desc">'+esc(p.summary||'')+'</p>\n' +
+            '      <div class="flex items-center justify-between card-footer">\n' +
+            '        <div class="flex items-center space-x-4 text-sm text-gray-500">\n' +
+            '          <span>ðŸ‘¥ '+ppl+' participant'+(ppl===1?'':'s')+'</span>\n' +
+            '          <span>ðŸ† '+pts+' points</span>\n' +
+            '        </div>\n' +
+            '      </div>\n' +
+            '    </div>\n' +
+            '  </a>\n' +
+            '</li>'
+          );
+        }).join('\n');
+
+        list.insertAdjacentHTML('beforeend', slides);
+
+        // Refresh Splide if already mounted
+        try {
+          var root = document.getElementById('projects-carousel');
+          if (root && root.splide && typeof root.splide.refresh === 'function') { root.splide.refresh(); }
+        } catch(e){}
+      })();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', run, { once:true });
+    } else {
+      run();
+    }
+  })();
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // If Splide instance exists (mounted elsewhere), just refresh it
+      if (typeof Splide !== 'undefined') {
+        const el = document.getElementById('projects-carousel');
+        if (el && el.splide && typeof el.splide.refresh === 'function') {
+          try { el.splide.refresh(); } catch(e){}
+        }
+      }
+
+      const keys = ['recycling','solar','urban'];
+      const getEl = (k)=>document.getElementById('section-'+k);
+
+      function openSection(k){
+        keys.forEach(x=>{ const el=getEl(x); if(el) el.classList.add('hidden'); });
+        const target=getEl(k); if(!target) return;
+        target.classList.remove('hidden');
+        target.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+
+      // open on click
+      document.addEventListener('click', (e) => {
+        const card = e.target.closest('[data-open-section]');
+        if (!card) return;
+        e.preventDefault();
+        openSection(card.getAttribute('data-open-section'));
+      });
+
+      // open on Enter/Space
+      document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const card = document.activeElement && document.activeElement.closest?.('[data-open-section]');
+        if (!card) return;
+        e.preventDefault();
+        openSection(card.getAttribute('data-open-section'));
+      });
+
+      // close buttons
+      document.addEventListener('click', (e) => {
+        const closer = e.target.closest('[data-section-close]');
+        if (!closer) return;
+        const box = closer.closest('[id^="section-"]');
+        if (box) box.classList.add('hidden');
+      });
+    });
+  </script>
+
+
+<!-- BEGIN: Featured Impact Projects (hide ALL completed, static or live) -->
+<script>
+(function(){
+  const SB_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+  const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+
+  const root = document.getElementById('projects-carousel');
+  const listEl = root ? root.querySelector('.splide__list') : null;
+  if (!root || !listEl) return;
+
+  // Static cards: EXCLUDE any that are completed
+  const staticCards = [
+    { slug:'campus-recycling-revolution', title:'Campus Recycling Revolution', summary:'Comprehensive recycling program implementing waste sorting, workshops, and challenges to reduce campus waste by 60%.', status:'in-progress', sdgLabel:'SDG 12 & 13', image:'resources/recycling-project.jpg', points:150 },
+    { slug:'urban-food-forest', title:'Urban Food Forest', summary:'Permaculture-based garden enhancing biodiversity and food security while teaching organic farming.', status:'planning', sdgLabel:'SDG 2 & 15', image:'resources/community-garden.jpg', points:180 }
+  ];
+
+  function norm(s){ return String(s||'').toLowerCase(); }
+  // Hide anything that looks completed / awarded / archived / canceled
+  function isHiddenStatus(status){
+    return /(complete|completed|done|finish|finished|closed|end|ended|award|awarded|archive|archived|cancel|canceled|cancelled)/.test(norm(status));
+  }
+  // Treat projects as completed if explicit flags or past end date
+  function isProjectDone(p){
+    try{
+      if (!p) return false;
+      if (isHiddenStatus(p.status)) return true;
+      if (p.is_completed !== undefined && (p.is_completed === true || p.is_completed === 'true' || p.is_completed === 1 || p.is_completed === '1')) return true;
+      if (p.completed !== undefined && (p.completed === true || p.completed === 'true' || p.completed === 1 || p.completed === '1')) return true;
+      const endRaw = p.ends_at || p.endsAt || p.end_date || p.endDate;
+      if (endRaw){
+        const d = new Date(endRaw);
+        if (!Number.isNaN(+d) && d.getTime() <= Date.now()) return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  // Only treat items as in-progress (exclude planning/upcoming/completed)
+  function isInProgress(p){
+    try{
+      if (!p) return false;
+      if (isProjectDone(p)) return false;
+      const fields = [p?.status, p?.phase, p?.state, p?.stage, p?.status_label, p?.statusText, p?.progress_status];
+      const s = norm(fields.map(x=>String(x||'')).join(' '));
+      const statusInProg = /(\bin\s*progress\b|progress|ongoing|active|live)/.test(s);
+      let dateInProg = false;
+      const st = p.starts_at || p.startsAt || p.start_date || p.startDate;
+      const en = p.ends_at   || p.endsAt   || p.end_date   || p.endDate;
+      if (st && en){
+        const sd = new Date(st), ed = new Date(en);
+        if (!Number.isNaN(+sd) && !Number.isNaN(+ed)){
+          const now = Date.now();
+          dateInProg = (now >= sd.getTime() && now <= ed.getTime());
+        }
+      } else if (st && !en){
+        const sd = new Date(st); if (!Number.isNaN(+sd)) dateInProg = (Date.now() >= sd.getTime());
+      }
+      // exclude archived/canceled regardless
+      if (/(archive|archived|cancel|canceled|cancelled)/.test(s)) return false;
+      return (statusInProg || dateInProg);
+    }catch(e){ return false; }
+  }
+  function badgeFrom(p){
+    if (isProjectDone(p)) return '<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Completed</span>';
+    const n = norm(p?.status);
+    if (/progress/.test(n)) return '<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">In Progress</span>';
+    if (/planning|idea|proposal|draft/.test(n)) return '<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Planning</span>';
+    return '<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">In Progress</span>';
+  }
+
+  function makeSlide(p){
+    const slug = (p.slug && String(p.slug).trim()) || null;
+    const id = p.id || null;
+    const href = slug ? ('innovation-lab.html?slug='+encodeURIComponent(slug)) : (id ? ('innovation-lab.html#project-'+id) : 'innovation-lab.html');
+    const sdg = p.sdgLabel || (Array.isArray(p.sdg) ? 'SDG ' + p.sdg.join(', ') : 'SDG');
+    const pts = (p.points_worth ?? p.points ?? 0);
+    const img = p.cover_image_url || p.image || 'resources/renewable-energy.jpg';
+    const created = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+    const __endsAttr = (p.ends_at || p.endsAt || p.end_date || p.endDate || '');
+    const __progAttr = (p.progress ?? p.completion ?? p.percent_complete ?? p.percent ?? '');
+    const __phaseAttr = (p.phase || p.state || p.stage || p.status_label || '');
+    return (
+      '<li class="splide__slide">\
+        <a href="'+href+'" class="block project-card bg-white rounded-3xl overflow-hidden shadow-lg cursor-pointer outline-none" data-slug="'+(slug||'')+'" data-status="'+(p.status||'')+'" data-phase="'+__phaseAttr+'" data-ends-at="'+__endsAttr+'" data-progress="'+__progAttr+'">\
+          <img src="'+img+'" alt="'+(p.title||'Project')+'" class="w-full h-64 object-cover">\
+          <div class="card-body">\
+            <div class="flex items-center mb-4">\
+              <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">'+sdg+'</span>\
+              <span class="ml-2">'+badgeFrom(p)+'</span>\
+              <span class="ml-auto text-sm text-gray-500">'+created+'</span>\
+            </div>\
+            <h3 class="display-font text-2xl font-bold text-gray-900 mb-3">'+(p.title||'Project')+'</h3>\
+            <p class="text-gray-600 mb-4 desc">'+(p.summary||'')+'</p>\
+            <div class="flex items-center justify-between card-footer">\
+              <div class="flex items-center space-x-2"><span class="text-sm text-gray-600">by Project Team</span></div>\
+              <div class="flex items-center space-x-4 text-sm text-gray-500"><span>ðŸ† '+pts+' points</span></div>\
+            </div>\
+          </div>\
+        </a>\
+      </li>'
+    );
+  }
+
+  function mountOrRefresh(){
+    if (!window.Splide) return;
+    // Destroy any non-standard instance to avoid duplicates
+    if (root.splide && typeof root.splide.destroy === 'function') { root.splide.destroy(); root.splide = null; }
+    const splide = new Splide(root, {
+      type: 'loop',
+      perPage: 3, // show 3 cards on desktop
+      perMove: 1,
+      gap: '1.25rem',
+      breakpoints: { 1024: { perPage: 2 }, 640: { perPage: 1 } }
+    });
+    splide.mount(); root.splide = splide;
+  }
+
+  function render(items){
+    // keep only in-progress
+    const filtered = (items||[]).filter(p => isInProgress(p));
+    // de-dupe by slug or id
+    const seen = new Set(), unique = [];
+    for (const p of filtered){
+      const key = (p.slug && String(p.slug).trim()) || (p.id ? 'id:'+p.id : null);
+      if (!key || seen.has(key)) continue;
+      seen.add(key); unique.push(p);
+    }
+    listEl.innerHTML = unique.length ? unique.map(makeSlide).join('') : '<li class="splide__slide"><div class="p-8 text-center">No projects yet.</div></li>';
+    try{
+      listEl.querySelectorAll('a.project-card').forEach(a => {
+        const st = ((a.getAttribute('data-status')||'') + ' ' + (a.getAttribute('data-phase')||''));
+        const endsRaw = a.getAttribute('data-ends-at');
+        let ended = false; if (endsRaw){ const d=new Date(endsRaw); ended = !Number.isNaN(+d) && d.getTime() <= Date.now(); }
+        const prog = Number(a.getAttribute('data-progress')||-1);
+        const isDone = /(complete|completed|done|finished|closed|ended)/i.test(st) || ended || (!Number.isNaN(prog) && prog>=100);
+        if (isDone) a.closest('li.splide__slide')?.remove();
+      });
+    }catch(_){ }
+    mountOrRefresh();
+  }
+
+  // 1) Render NON-completed statics
+  render(staticCards);
+
+  // 2) Fetch live and merge, then filter completed out
+  (async function(){
+    try{
+      const sb = (window.sb) || window.supabase.createClient(SB_URL, SB_KEY);
+      let rows = [];
+
+      // Try your RPCs first if present
+      try{
+        const hp = await sb.rpc('public_homepage_projects');
+        if (!hp.error && Array.isArray(hp.data)) rows = hp.data;
+      }catch(e){}
+      if (!rows.length){
+        try{
+          const live = await sb.rpc('public_live_projects');
+          if (!live.error && Array.isArray(live.data)) rows = live.data;
+        }catch(e){}
+      }
+      if (!rows.length){
+        try{
+          const rc = await sb.rpc('public_recent_projects');
+          if (!rc.error && Array.isArray(rc.data)) rows = rc.data;
+        }catch(e){}
+      }
+      if (!rows.length){
+        const sel = await sb
+          .from('projects')
+          .select('id,slug,title,summary,points_worth,status,sdg,created_at,starts_at,ends_at')
+          .eq('is_approved', true)
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (!sel.error && Array.isArray(sel.data)) rows = sel.data;
+      }
+
+      render([...rows, ...staticCards]);
+    }catch(e){
+      console.warn('Featured projects fetch failed:', e);
+    }
+  })();
+})();
+</script>
+<!-- END: Featured Impact Projects (hide completed) -->
+
+
+<script id="equalize-cards-script">
+(function(){
+  function eqHeights(){
+    const cards = document.querySelectorAll('#projects-carousel .project-card');
+    if (!cards.length) return;
+    // reset heights
+    cards.forEach(c => c.style.height = 'auto');
+    // compute tallest
+    let max = 0;
+    cards.forEach(c => { max = Math.max(max, c.offsetHeight); });
+    // set all to tallest
+    cards.forEach(c => c.style.height = max + 'px');
+  }
+
+  function schedule(){
+    requestAnimationFrame(() => requestAnimationFrame(eqHeights));
+  }
+
+  // Run on load
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    schedule();
+  } else {
+    document.addEventListener('DOMContentLoaded', schedule);
+  }
+
+  // Re-run on window resize
+  window.addEventListener('resize', schedule);
+
+  // Re-run when Splide mounts/changes
+  const root = document.getElementById('projects-carousel');
+  const connectSplide = () => {
+    if (!root) return;
+    const inst = root.__splideInstance;
+    if (inst && !inst.__eqHooked){
+      inst.on('mounted moved updated', schedule);
+      inst.__eqHooked = true;
+    }
+  };
+  // Try immediately and then poll a bit
+  connectSplide();
+  let tries = 0;
+  const iv = setInterval(() => {
+    connectSplide();
+    if (++tries > 20) clearInterval(iv);
+  }, 200);
+
+  // Observe DOM changes to the slides list (when data loads)
+  const list = root ? root.querySelector('.splide__list') : null;
+  if (list) {
+    const mo = new MutationObserver(schedule);
+    mo.observe(list, { childList: true, subtree: true });
+  }
+})();
+</script>
+
+
+
+<script id="featured-live-robust">
+(function() {
+  // --- Supabase client ---
+  const SB_URL = "https://zjxxmppahgpxoltdsfaq.supabase.co";
+  const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo";
+  if (!window.supabase || !window.supabase.createClient) return;
+  const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+  // --- DOM handles ---
+  const root = document.getElementById('projects-carousel');
+  if (!root) return;
+  const list = root.querySelector('.splide__list');
+  if (!list) return;
+
+  // --- helpers ---
+  const escMap = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+  function esc(v) { return String(v ?? '').replace(/[&<>\"']/g, c => escMap[c]); }
+  function boolish(v){ return v===true || v==='true' || v===1 || v==='1'; }
+
+  // Matches dashboard logic
+  function badgeFor(p){
+    const sraw = String(p?.status || '').toLowerCase().replace(/[_\s-]+/g,'-');
+    if (sraw === 'completed')   return { label: 'Completed',   cls: 'bg-green-100 text-green-800',  filter: 'completed' };
+    if (sraw === 'planning')    return { label: 'Planning',    cls: 'bg-blue-100 text-blue-800',    filter: 'planning' };
+    if (sraw === 'in-progress') return { label: 'In Progress', cls: 'bg-yellow-100 text-yellow-800',filter: 'in-progress' };
+    const now = new Date();
+    const toDate = (v)=>{ try{ return v? new Date(v): null }catch{ return null } };
+    const s = toDate(p?.starts_at), e = toDate(p?.ends_at);
+    if (e && now > e) return { label:'Completed', cls:'bg-green-100 text-green-800', filter:'completed' };
+    if (s && now < s) return { label:'Planning',  cls:'bg-blue-100 text-blue-800',  filter:'planning' };
+    return { label:'In Progress', cls:'bg-yellow-100 text-yellow-800', filter:'in-progress' };
+  }
+  function isAwarded(p){ return boolish(p?.is_awarded); }
+
+  function pickImage(p){
+    const url = (p.cover_image_url || p.image || '').trim();
+    if (url) return url;
+    const sdgStr = (p.sdg ? String(p.sdg) : '').toLowerCase();
+    if(sdgStr.includes('7')) return 'resources/renewable-energy.jpg';
+    if(sdgStr.includes('12') || sdgStr.includes('13')) return 'resources/recycling-project.jpg';
+    return 'resources/community-garden.jpg';
+  }
+
+  function card(p) {
+    const href = `innovation-lab.html?slug=${encodeURIComponent(p.slug||'')}`;
+    const when = (p.starts_at || p.created_at || '').slice(0,10) || '';
+    const sdg  = p.sdg || 'Impact';
+    const pts  = Number(p.points_worth || 0);
+    const ppl  = Number(p.__volunteers || 0);
+    const img  = pickImage(p);
+    return [
+      '<li class="splide__slide" data-live="1">',
+      '  <a class="project-card block rounded-3xl overflow-hidden bg-white shadow-md hover:shadow-lg transition" href="', href, '" data-slug="', esc(p.slug||''), '">',
+      '    <img src="', esc(img), '" alt="" class="w-full h-64 object-cover" loading="lazy">',
+      '    <div class="p-5 card-body">',
+      '      <div class="flex items-center mb-2">',
+      '        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">', esc(sdg), '</span>',
+      '        <span class="ml-auto text-xs text-gray-500">', esc(when), '</span>',
+      '      </div>',
+      '      <h3 class="text-lg font-bold text-gray-900 mb-2">', esc(p.title||'Untitled project'), '</h3>',
+      '      <p class="text-gray-600 text-sm desc">', esc(p.summary||''), '</p>',
+      '      <div class="mt-3 text-xs text-gray-500 flex gap-4 card-footer">',
+      '        <span>👥 ', String(ppl), '</span>',
+      '        <span>🏆 ', String(pts), '</span>',
+      '      </div>',
+      '    </div>',
+      '  </a>',
+      '</li>'
+    ].join('');
+  }
+
+  function mountSplide() {
+    if (root.splide) { try { root.splide.refresh(); } catch {} return; }
+    if (typeof Splide === 'undefined') return;
+    const splide = new Splide(root, {
+      perPage: 3, gap: '1rem', speed: 500, rewind: false,
+      breakpoints: { 1024: { perPage: 2 }, 640: { perPage: 1 } }
+    });
+    splide.mount();
+    root.splide = splide;
+  }
+
+  async function load() {
+    try { await sb.auth.getSession(); } catch {}
+
+    const sel = 'id, slug, title, summary, status, is_approved, is_awarded, sdg, created_at, starts_at, ends_at, points_worth, cover_image_url, image';
+    const r = await sb.from('projects').select(sel).eq('is_approved', true).order('created_at',{ascending:false}).limit(50);
+    if (r.error) { console.warn('[featured] query failed', r.error); return; }
+    let rows = (r.data || []).filter(p => !isAwarded(p) && badgeFor(p).filter === 'in-progress');
+    if (!rows.length) { console.info('[featured] no in-progress live projects'); return; }
+
+    // Volunteer counts (optional)
+    try {
+      const ids = rows.map(x=>x.id);
+      if (ids.length){
+        const vr = await sb.from('project_volunteers').select('project_id').in('project_id', ids);
+        const counts = {};
+        (vr.data||[]).forEach(v => counts[v.project_id] = (counts[v.project_id]||0) + 1);
+        rows = rows.map(p => Object.assign({}, p, { __volunteers: counts[p.id] || 0 }));
+      }
+    } catch(e) { console.warn('[featured] volunteer counts failed', e); }
+
+    // Avoid duplicating if we re-run
+    list.querySelectorAll('li[data-live=\"1\"]').forEach(li=>li.remove());
+
+    const markup = rows.map(card).join('\\n');
+    if (markup) list.insertAdjacentHTML('beforeend', markup);
+    mountSplide();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', load, { once: true });
+  } else {
+    load();
+  }
+})();
+</script>
+
+<script src="js/emoji-fix.js"></script>
+
+  
+</body></html>
+
+

@@ -1,0 +1,89 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Log in - GreenCell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- We will use ONLY the ESM module import below (no UMD duplicate) -->
+  <!-- Icon flicker fix: navbar leaf + name/role visibility -->
+  <style id="gc-emoji-fix">
+    #gc-nav .rounded-full.grid.place-content-center.text-white{position:relative;color:transparent}
+    #gc-nav .rounded-full.grid.place-content-center.text-white::before{content:"\01F331";color:#fff;position:absolute;inset:0;display:grid;place-content:center}
+    #gc-name,#gc-role,#gc-avatar{visibility:hidden}
+  </style>
+  <script>(function(){document.addEventListener('DOMContentLoaded',function(){var n=document.getElementById('gc-name');var r=document.getElementById('gc-role');var a=document.getElementById('gc-avatar');if(n) n.style.visibility='visible'; if(r) r.style.visibility='visible'; if(a) a.style.visibility='visible';});})();</script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-6">
+  <div class="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl border border-gray-200 p-8 shadow">
+    <h1 class="text-2xl font-bold mb-6">Welcome back</h1>
+
+    <button id="googleBtn" class="w-full mb-4 border px-4 py-2 rounded-lg">Continue with Google</button>
+
+    <div class="relative my-4 text-center text-sm text-gray-500">
+      <span class="bg-white px-2">or</span>
+      <div class="absolute inset-x-0 top-1/2 -z-10 border-b"></div>
+    </div>
+
+    <!-- NOTE: no inline onsubmit! -->
+    <form id="loginForm" class="space-y-3">
+      <input name="email" type="email" required placeholder="Email" class="w-full border px-3 py-2 rounded-lg"/>
+      <input name="password" type="password" required placeholder="Password" class="w-full border px-3 py-2 rounded-lg"/>
+      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg">Log in</button>
+    </form>
+
+    <div class="flex items-center justify-between mt-4 text-sm">
+      <a class="text-green-700" href="signup.html">Create account</a>
+      <a class="text-gray-600" href="password-reset.html">Forgot password?</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    // Init Supabase
+    const supabase = createClient(
+      "https://zjxxmppahgpxoltdsfaq.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqeHhtcHBhaGdweG9sdGRzZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDA4NjIsImV4cCI6MjA3NTY3Njg2Mn0.VjYwkdE8g809JugkFy9KbrOAvMGwtKUCK4fDh8V7WVo"
+    );
+
+    // Builds an absolute URL while preserving the GitHub Pages subfolder (/greencell/)
+    const abs = (p) => new URL(String(p).replace(/^\//,''), location.href).toString();
+
+    // Honors ?returnTo=<page> if present, else uses a default (e.g., 'dashboard.html')
+    const getReturnTo = (fallback = 'dashboard.html') =>
+      new URLSearchParams(location.search).get('returnTo') || fallback;
+
+    // If already logged in, skip to dashboard
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) window.location.href = 'dashboard.html';
+
+    // Attach submit handler (modules don't expose globals by default)
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const email = fd.get('email').trim();
+      const password = fd.get('password').trim();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { alert(error.message); return; }
+      window.location.href = getReturnTo('dashboard.html');
+    });
+
+    // Google OAuth
+    document.getElementById('googleBtn').addEventListener('click', async () => {
+      const redirectTo = abs(getReturnTo('dashboard.html'));
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo }
+      });
+      if (error) alert(error.message);
+    });
+  </script>
+  <script src="js/emoji-fix.js"></script>
+</body>
+</html>
+
+
+
+
+
